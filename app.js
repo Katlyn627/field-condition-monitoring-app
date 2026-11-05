@@ -5,6 +5,8 @@ const sampleLogs = [
     id: 'sample-1',
     type: 'Trail Hazard',
     location: 'Sunset Trailhead, Tilden Regional Park',
+    trailName: 'Sunset Trail',
+    mileMarker: '2.1',
     priority: 'High',
     status: 'Reported to District',
     gps: '37.8966, -122.2484',
@@ -15,6 +17,8 @@ const sampleLogs = [
     id: 'sample-2',
     type: 'Invasive Species',
     location: 'North Ridge Trail, Redwood Regional Park',
+    trailName: 'North Ridge Trail',
+    mileMarker: '',
     priority: 'Medium',
     status: 'Flagged',
     gps: '37.8222, -122.1887',
@@ -25,6 +29,8 @@ const sampleLogs = [
     id: 'sample-3',
     type: 'Infrastructure/Trash',
     location: 'Morrison Canyon, Mt. Diablo State Park',
+    trailName: 'Morrison Canyon Road',
+    mileMarker: '0.8',
     priority: 'Immediate Safety Hazard',
     status: 'Resolved',
     gps: '37.8819, -121.9188',
@@ -35,6 +41,8 @@ const sampleLogs = [
     id: 'sample-4',
     type: 'Wildlife Impact',
     location: 'Lake Anza Loop, Tilden Regional Park',
+    trailName: 'Lake Anza Trail',
+    mileMarker: '',
     priority: 'Low',
     status: 'Resolved',
     gps: '37.8998, -122.2491',
@@ -48,6 +56,7 @@ const tableBody = document.getElementById('incidentTableBody');
 const statusFilter = document.getElementById('statusFilter');
 const typeFilter = document.getElementById('typeFilter');
 const locationInput = document.getElementById('location');
+const pendingTrailMatchInput = document.getElementById('pendingTrailMatch');
 const photoUrlInput = document.getElementById('photoUrl');
 const photoInput = document.getElementById('photoInput');
 const photoPreviewContainer = document.getElementById('photoPreviewContainer');
@@ -55,6 +64,8 @@ const resumeOutput = document.getElementById('resumeOutput');
 const copyResumeButton = document.getElementById('copyResumeButton');
 const clearFormButton = document.getElementById('clearFormButton');
 const exportGpxButton = document.getElementById('exportGpxButton');
+const importGpxButton = document.getElementById('importGpxButton');
+const importGpxInput = document.getElementById('importGpxInput');
 const gpsInput = document.getElementById('gps');
 const gpsLocationButton = document.getElementById('gpsLocationButton');
 const gpsStatusBadge = document.getElementById('gpsStatusBadge');
@@ -63,7 +74,8 @@ const offlineStatus = document.getElementById('offlineStatus');
 
 const state = {
   incidents: loadIncidents(),
-  selectedPhotoDataUrl: ''
+  selectedPhotoDataUrl: '',
+  editingIncidentId: null
 };
 
 const TRAILHEADS = [
@@ -91,6 +103,7 @@ function attachEventListeners() {
   form.addEventListener('submit', handleFormSubmit);
   statusFilter.addEventListener('change', renderTable);
   typeFilter.addEventListener('change', renderTable);
+  pendingTrailMatchInput.addEventListener('change', handlePendingTrailMatchToggle);
   photoUrlInput.addEventListener('input', () => {
     state.selectedPhotoDataUrl = '';
     handlePhotoPreview();
@@ -99,13 +112,28 @@ function attachEventListeners() {
   copyResumeButton.addEventListener('click', copyResumeBullets);
   clearFormButton.addEventListener('click', clearIncidentForm);
   exportGpxButton.addEventListener('click', handleGpxExport);
+  importGpxButton.addEventListener('click', () => importGpxInput.click());
+  importGpxInput.addEventListener('change', handleGpxImport);
   tableBody.addEventListener('click', handleTableAction);
+  tableBody.addEventListener('submit', handleInlineEditSubmit);
   gpsInput.addEventListener('input', () => {
     updateGpsStatusBadge(Boolean(gpsInput.value.trim()) && gpsInput.value !== 'Location unavailable');
   });
   gpsLocationButton.addEventListener('click', handleGeolocationCapture);
   window.addEventListener('online', updateConnectionStatus);
   window.addEventListener('offline', updateConnectionStatus);
+}
+
+function handlePendingTrailMatchToggle() {
+  const statusInput = document.getElementById('status');
+  if (pendingTrailMatchInput.checked) {
+    statusInput.value = 'Pending Trail Match';
+    return;
+  }
+
+  if (statusInput.value === 'Pending Trail Match') {
+    statusInput.value = 'Flagged';
+  }
 }
 
 function setDefaultDate() {
@@ -127,7 +155,6 @@ function updateConnectionStatus() {
 function updateGpsStatusBadge(hasCoordinates) {
   if (!gpsStatusBadge) return;
   gpsStatusBadge.hidden = !hasCoordinates;
-  gpsStatusBadge.textContent = hasCoordinates ? 'GPS ready' : 'GPS ready';
 }
 
 function updatePhotoStatusBadge(hasPhoto) {
@@ -145,9 +172,7 @@ function handleGeolocationCapture() {
     (position) => {
       const latitude = Number(position.coords.latitude);
       const longitude = Number(position.coords.longitude);
-      const formattedLatitude = latitude.toFixed(5);
-      const formattedLongitude = longitude.toFixed(5);
-      gpsInput.value = `${formattedLatitude}, ${formattedLongitude}`;
+      gpsInput.value = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
       updateGpsStatusBadge(true);
 
       const trailheadName = findNearbyTrailhead(latitude, longitude);
@@ -204,14 +229,44 @@ function loadIncidents() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) {
-      return [...sampleLogs];
+      return sampleLogs.map(normalizeIncident);
     }
 
     const parsed = JSON.parse(saved);
-    return Array.isArray(parsed) && parsed.length ? parsed : [...sampleLogs];
+    if (!Array.isArray(parsed) || !parsed.length) {
+      return sampleLogs.map(normalizeIncident);
+    }
+
+    return parsed.map(normalizeIncident);
   } catch (error) {
-    return [...sampleLogs];
+    return sampleLogs.map(normalizeIncident);
   }
+}
+
+function normalizeIncident(rawIncident = {}) {
+  const normalized = {
+    id: String(rawIncident.id || `incident-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`),
+    type: String(rawIncident.type || 'Trail Hazard'),
+    location: String(rawIncident.location || '').trim(),
+    trailName: String(rawIncident.trailName || '').trim(),
+    mileMarker: String(rawIncident.mileMarker || '').trim(),
+    priority: String(rawIncident.priority || 'Medium'),
+    status: String(rawIncident.status || 'Flagged'),
+    gps: String(rawIncident.gps || '').trim(),
+    date: String(rawIncident.date || new Date().toISOString().slice(0, 10)),
+    photo: sanitizeImageUrl(rawIncident.photo || ''),
+    notes: String(rawIncident.notes || '').trim()
+  };
+
+  if (normalized.status !== 'Flagged' && normalized.status !== 'Pending Trail Match' && normalized.status !== 'Reported to District' && normalized.status !== 'Resolved') {
+    normalized.status = 'Flagged';
+  }
+
+  if (!normalized.location && normalized.trailName) {
+    normalized.location = normalized.trailName;
+  }
+
+  return normalized;
 }
 
 function persistIncidents() {
@@ -268,20 +323,22 @@ function renderTable() {
 
   tableBody.innerHTML = filtered
     .map((incident) => {
-      const safeLocation = escapeHtml(incident.location);
+      const safeLocation = escapeHtml(incident.location || '—');
       const safeType = escapeHtml(incident.type);
       const safePriority = escapeHtml(incident.priority);
       const safeStatus = escapeHtml(incident.status);
       const safeGps = escapeHtml(incident.gps || '—');
       const safeDate = escapeHtml(formatDate(incident.date));
-      const safePhotoAlt = escapeHtml(`${incident.location} photo`);
+      const safePhotoAlt = escapeHtml(`${incident.location || incident.type} photo`);
+      const coordinates = parseGpsCoordinates(incident.gps);
       const photoCell = incident.photo
         ? `<img class="photo-thumb" src="${escapeAttribute(incident.photo)}" alt="${safePhotoAlt}" />`
         : '<span class="empty-state">None</span>';
-      const hasGpsCoordinates = Boolean(parseGpsCoordinates(incident.gps));
-      const mapButton = hasGpsCoordinates
-        ? `<button class="table-button" data-action="map" data-id="${escapeAttribute(incident.id)}">View on Map</button>`
-        : '<button class="table-button" disabled title="Add valid GPS coordinates to use map view">View on Map</button>';
+
+      const trailMeta = renderTrailMeta(incident);
+      const externalMapActions = renderExternalMapActions(incident, coordinates);
+      const isEditing = state.editingIncidentId === incident.id;
+      const editPanel = isEditing ? renderInlineEditForm(incident) : '';
 
       const priorityClass = toPriorityClass(incident.priority);
       const statusClass = toStatusClass(incident.status);
@@ -290,7 +347,7 @@ function renderTable() {
       return `
         <tr>
           <td data-label="Type"><span class="badge ${toTypeClass(incident.type)}">${safeType}</span></td>
-          <td data-label="Location">${safeLocation}</td>
+          <td data-label="Location">${safeLocation}${trailMeta}</td>
           <td data-label="Priority"><span class="badge ${priorityClass}">${safePriority}</span></td>
           <td data-label="Status"><span class="badge ${statusClass}">${safeStatus}</span></td>
           <td data-label="GPS">${safeGps}</td>
@@ -298,14 +355,111 @@ function renderTable() {
           <td data-label="Photo">${photoCell}</td>
           <td data-label="Actions">
             <div class="actions">
-              ${mapButton}
+              ${externalMapActions}
+              <button class="table-button" data-action="edit-match" data-id="${escapeAttribute(incident.id)}">Update Location / Match Trail</button>
               <button class="table-button toggle-btn" data-action="toggle" data-id="${escapeAttribute(incident.id)}">${actionLabel}</button>
               <button class="table-button remove-btn" data-action="remove" data-id="${escapeAttribute(incident.id)}">Remove</button>
+              ${editPanel}
             </div>
           </td>
         </tr>
       `;
     })
+    .join('');
+}
+
+function renderTrailMeta(incident) {
+  const trailName = escapeHtml(incident.trailName || '');
+  const mileMarker = escapeHtml(incident.mileMarker || '');
+  const chips = [];
+
+  if (trailName) {
+    chips.push(`<span class="trail-chip">Trail: ${trailName}</span>`);
+  }
+
+  if (mileMarker) {
+    chips.push(`<span class="trail-chip">Mile: ${mileMarker}</span>`);
+  }
+
+  if (!chips.length) {
+    return '';
+  }
+
+  return `<div class="trail-meta">${chips.join('')}</div>`;
+}
+
+function renderExternalMapActions(incident, coordinates) {
+  const hasCoordinates = Boolean(coordinates);
+  const safeId = escapeAttribute(incident.id);
+  const disabledAttr = hasCoordinates ? '' : ' disabled';
+  const unavailableTitle = hasCoordinates ? '' : ' title="GPS coordinates required"';
+
+  return `
+    <div class="external-map-group">
+      <span class="external-map-label">Open in External Maps</span>
+      <div class="external-map-actions">
+        <button class="table-button" data-action="open-alltrails" data-id="${safeId}">AllTrails Search</button>
+        <button class="table-button" data-action="open-google" data-id="${safeId}"${disabledAttr}${unavailableTitle}>Google Maps</button>
+        <button class="table-button" data-action="open-apple" data-id="${safeId}"${disabledAttr}${unavailableTitle}>Apple / Geo</button>
+        <button class="table-button" data-action="open-gaia" data-id="${safeId}"${disabledAttr}${unavailableTitle}>Gaia GPS</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderInlineEditForm(incident) {
+  const safeId = escapeAttribute(incident.id);
+  const status = incident.status || 'Flagged';
+  const pendingChecked = status === 'Pending Trail Match' ? ' checked' : '';
+
+  return `
+    <form class="inline-edit-form" data-edit-form="true" data-id="${safeId}">
+      <label>
+        <span>Location / Trailhead</span>
+        <input type="text" name="editLocation" value="${escapeAttribute(incident.location || '')}" placeholder="Update location">
+      </label>
+      <label>
+        <span>AllTrails Trail Name</span>
+        <input type="text" name="editTrailName" value="${escapeAttribute(incident.trailName || '')}" placeholder="e.g., Seaview Trail">
+      </label>
+      <label>
+        <span>Mile Marker</span>
+        <input type="text" name="editMileMarker" value="${escapeAttribute(incident.mileMarker || '')}" placeholder="e.g., 3.2">
+      </label>
+      <label>
+        <span>GPS Coordinates</span>
+        <input type="text" name="editGps" value="${escapeAttribute(incident.gps || '')}" placeholder="37.8741,-122.2861">
+      </label>
+      <label>
+        <span>Status</span>
+        <select name="editStatus">
+          ${renderStatusOptions(status)}
+        </select>
+      </label>
+      <label class="check-row">
+        <input type="checkbox" name="editPendingTrailMatch"${pendingChecked}>
+        <span>Mark as Pending Trail Match</span>
+      </label>
+      <label>
+        <span>Photo URL (optional)</span>
+        <input type="url" name="editPhotoUrl" placeholder="https://example.com/trail-photo.jpg">
+      </label>
+      <label>
+        <span>Upload Photo (optional)</span>
+        <input type="file" name="editPhotoFile" accept="image/*">
+      </label>
+      <div class="inline-edit-actions">
+        <button class="table-button toggle-btn" type="submit">Save Trail Match</button>
+        <button class="table-button remove-btn" type="button" data-action="cancel-edit" data-id="${safeId}">Cancel</button>
+      </div>
+    </form>
+  `;
+}
+
+function renderStatusOptions(currentStatus) {
+  const statuses = ['Flagged', 'Pending Trail Match', 'Reported to District', 'Resolved'];
+  return statuses
+    .map((status) => `<option value="${escapeAttribute(status)}"${currentStatus === status ? ' selected' : ''}>${escapeHtml(status)}</option>`)
     .join('');
 }
 
@@ -327,14 +481,27 @@ function handleTableAction(event) {
   if (!target) return;
 
   const { action, id } = target.dataset;
-  const incidentIndex = state.incidents.findIndex((entry) => entry.id === id);
+  if (!action || !id) return;
 
+  const incidentIndex = state.incidents.findIndex((entry) => entry.id === id);
   if (incidentIndex === -1) return;
 
   const incident = state.incidents[incidentIndex];
 
-  if (action === 'map') {
-    openIncidentInMap(incident);
+  if (action === 'open-alltrails' || action === 'open-google' || action === 'open-apple' || action === 'open-gaia') {
+    openExternalMapForIncident(action, incident);
+    return;
+  }
+
+  if (action === 'edit-match') {
+    state.editingIncidentId = incident.id;
+    renderTable();
+    return;
+  }
+
+  if (action === 'cancel-edit') {
+    state.editingIncidentId = null;
+    renderTable();
     return;
   }
 
@@ -352,26 +519,134 @@ function handleTableAction(event) {
   renderResumeOutput();
 }
 
+function openExternalMapForIncident(action, incident) {
+  const coordinates = parseGpsCoordinates(incident.gps);
+  const urlByAction = {
+    'open-alltrails': getAllTrailsDeepLink(incident, coordinates),
+    'open-google': coordinates ? getGoogleMapsDeepLink(coordinates.latitude, coordinates.longitude) : '',
+    'open-apple': coordinates ? getGeoDeepLink(coordinates.latitude, coordinates.longitude) : '',
+    'open-gaia': coordinates ? getGaiaGpsDeepLink(coordinates.latitude, coordinates.longitude) : ''
+  };
+
+  const targetUrl = urlByAction[action];
+  if (!targetUrl) {
+    return;
+  }
+
+  if (targetUrl.startsWith('geo:')) {
+    window.location.href = targetUrl;
+    return;
+  }
+
+  window.open(targetUrl, '_blank', 'noopener');
+}
+
+function getAllTrailsDeepLink(incident, coordinates) {
+  if (coordinates) {
+    return `https://www.alltrails.com/explore?b_tl_lat=${coordinates.latitude}&b_tl_lng=${coordinates.longitude}`;
+  }
+
+  const query = incident.trailName || incident.location || 'east bay trail';
+  return `https://www.alltrails.com/search?q=${encodeURIComponent(query)}`;
+}
+
+function getGoogleMapsDeepLink(latitude, longitude) {
+  return `https://www.google.com/maps?q=${Number(latitude).toFixed(6)},${Number(longitude).toFixed(6)}`;
+}
+
+function getGeoDeepLink(latitude, longitude) {
+  return `geo:${Number(latitude).toFixed(6)},${Number(longitude).toFixed(6)}`;
+}
+
+function getGaiaGpsDeepLink(latitude, longitude) {
+  return `https://www.gaiagps.com/map/?loc=14/${Number(longitude).toFixed(6)}/${Number(latitude).toFixed(6)}`;
+}
+
+async function handleInlineEditSubmit(event) {
+  const editForm = event.target.closest('form[data-edit-form="true"]');
+  if (!editForm) return;
+
+  event.preventDefault();
+
+  const incidentId = editForm.dataset.id;
+  const incident = state.incidents.find((entry) => entry.id === incidentId);
+  if (!incident) return;
+
+  const formData = new FormData(editForm);
+  const pendingTrailMatch = Boolean(formData.get('editPendingTrailMatch'));
+  const location = String(formData.get('editLocation') || '').trim();
+  const trailName = String(formData.get('editTrailName') || '').trim();
+  const mileMarker = String(formData.get('editMileMarker') || '').trim();
+  const gps = String(formData.get('editGps') || '').trim();
+  const selectedStatus = String(formData.get('editStatus') || 'Flagged');
+  const status = pendingTrailMatch ? 'Pending Trail Match' : selectedStatus;
+  const photoUrlInputValue = String(formData.get('editPhotoUrl') || '').trim();
+  const editPhotoFile = formData.get('editPhotoFile');
+
+  const updatedPhoto = await resolveInlineEditPhoto(editPhotoFile, photoUrlInputValue, incident.photo);
+
+  incident.location = location || incident.location;
+  incident.trailName = trailName;
+  incident.mileMarker = mileMarker;
+  incident.gps = gps;
+  incident.status = status;
+  incident.photo = updatedPhoto;
+
+  if (!incident.location && incident.trailName) {
+    incident.location = incident.trailName;
+  }
+
+  state.editingIncidentId = null;
+  persistIncidents();
+  renderDashboard();
+  renderTable();
+  renderResumeOutput();
+}
+
+async function resolveInlineEditPhoto(fileFieldValue, photoUrl, fallbackPhoto) {
+  if (fileFieldValue instanceof File && fileFieldValue.size > 0) {
+    const dataUrl = await readFileAsDataUrl(fileFieldValue);
+    return dataUrl.startsWith('data:image/') ? dataUrl : fallbackPhoto;
+  }
+
+  const sanitizedUrl = sanitizeImageUrl(photoUrl);
+  if (sanitizedUrl) {
+    return sanitizedUrl;
+  }
+
+  return fallbackPhoto;
+}
+
 function handleFormSubmit(event) {
   event.preventDefault();
 
   const formData = new FormData(form);
-  const incident = {
+  const pendingTrailMatch = Boolean(formData.get('pendingTrailMatch'));
+  const location = String(formData.get('location') || '').trim();
+  const gps = String(formData.get('gps') || '').trim();
+
+  const incident = normalizeIncident({
     id: `incident-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
     type: String(formData.get('type') || 'Trail Hazard'),
-    location: String(formData.get('location') || '').trim(),
+    location,
     priority: String(formData.get('priority') || 'Medium'),
-    status: String(formData.get('status') || 'Flagged'),
-    gps: String(formData.get('gps') || '').trim(),
+    status: pendingTrailMatch ? 'Pending Trail Match' : String(formData.get('status') || 'Flagged'),
+    gps,
     date: String(formData.get('date') || new Date().toISOString().slice(0, 10)),
     photo: getSelectedPhotoValue()
-  };
+  });
 
-  if (!incident.location) {
+  if (!incident.location && !incident.gps) {
+    window.alert('Add either a location/trail name or GPS coordinates before logging this incident.');
     return;
   }
 
+  if (!incident.location && incident.gps) {
+    incident.location = 'Pending trail match';
+  }
+
   state.incidents.unshift(incident);
+  state.editingIncidentId = null;
   persistIncidents();
   renderDashboard();
   renderTable();
@@ -445,6 +720,7 @@ function resetPhotoSelection() {
 function clearIncidentForm() {
   form.reset();
   gpsInput.value = '';
+  pendingTrailMatchInput.checked = false;
   updateGpsStatusBadge(false);
   resetPhotoSelection();
   setDefaultDate();
@@ -548,6 +824,7 @@ function toPriorityClass(priority) {
 function toStatusClass(status) {
   if (status === 'Resolved') return 'resolved';
   if (status === 'Reported to District') return 'reported';
+  if (status === 'Pending Trail Match') return 'pending-match';
   return 'flagged';
 }
 
@@ -574,32 +851,6 @@ function parseGpsCoordinates(gpsValue) {
   return { latitude, longitude };
 }
 
-function openIncidentInMap(incident) {
-  const coordinates = parseGpsCoordinates(incident.gps);
-  if (!coordinates) {
-    return;
-  }
-
-  const mapUrl = getMapDeepLink(coordinates.latitude, coordinates.longitude);
-  if (mapUrl.startsWith('geo:')) {
-    window.location.href = mapUrl;
-    return;
-  }
-  window.open(mapUrl, '_blank', 'noopener');
-}
-
-function getMapDeepLink(latitude, longitude) {
-  const formattedLatitude = Number(latitude).toFixed(6);
-  const formattedLongitude = Number(longitude).toFixed(6);
-  const isAndroidMobile = /Android/i.test(navigator.userAgent);
-
-  if (isAndroidMobile) {
-    return `geo:${formattedLatitude},${formattedLongitude}`;
-  }
-
-  return `https://www.google.com/maps?q=${formattedLatitude},${formattedLongitude}`;
-}
-
 function handleGpxExport() {
   const incidentsWithCoordinates = state.incidents
     .map((incident) => {
@@ -621,8 +872,8 @@ function handleGpxExport() {
   const waypointEntries = sortedByDate
     .map((incident) => {
       const timestamp = toIsoTimestamp(incident.date);
-      const waypointName = escapeXml(incident.location || incident.type || 'Field Incident');
-      const description = escapeXml(`${incident.type} | ${incident.priority} | ${incident.status}`);
+      const waypointName = escapeXml(incident.trailName || incident.location || incident.type || 'Field Incident');
+      const description = escapeXml(`${incident.type} | ${incident.priority} | ${incident.status} | Mile ${incident.mileMarker || 'N/A'}`);
       return [
         `  <wpt lat="${incident.latitude}" lon="${incident.longitude}">`,
         `    <name>${waypointName}</name>`,
@@ -672,6 +923,102 @@ function handleGpxExport() {
   URL.revokeObjectURL(downloadUrl);
 }
 
+async function handleGpxImport(event) {
+  const [file] = event.target.files || [];
+  if (!file) return;
+
+  try {
+    const gpxContent = await file.text();
+    const importedIncidents = parseGpxContent(gpxContent);
+
+    if (!importedIncidents.length) {
+      window.alert('No valid waypoints or track points were found in this GPX file.');
+      return;
+    }
+
+    state.incidents = importedIncidents.concat(state.incidents).map(normalizeIncident);
+    state.editingIncidentId = null;
+    persistIncidents();
+    renderDashboard();
+    renderTable();
+    renderResumeOutput();
+    window.alert(`Imported ${importedIncidents.length} trail points from GPX.`);
+  } catch (error) {
+    console.error('GPX import failed:', error);
+    window.alert('Unable to import GPX file. Please verify the file format and try again.');
+  } finally {
+    importGpxInput.value = '';
+  }
+}
+
+function parseGpxContent(gpxContent) {
+  const parser = new DOMParser();
+  const xmlDocument = parser.parseFromString(gpxContent, 'application/xml');
+  if (xmlDocument.querySelector('parsererror')) {
+    return [];
+  }
+
+  const waypoints = Array.from(xmlDocument.querySelectorAll('wpt'))
+    .map((node, index) => createIncidentFromGpxNode(node, index, 'Waypoint'))
+    .filter(Boolean);
+
+  const trackPoints = Array.from(xmlDocument.querySelectorAll('trkpt'))
+    .map((node, index) => createIncidentFromGpxNode(node, index, 'Track Point'))
+    .filter(Boolean);
+
+  const deduplicated = [];
+  const seen = new Set();
+
+  [...waypoints, ...trackPoints].forEach((incident) => {
+    const key = `${incident.gps}|${incident.date}|${incident.trailName}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    deduplicated.push(incident);
+  });
+
+  return deduplicated;
+}
+
+function createIncidentFromGpxNode(node, index, pointType) {
+  const latitude = Number(node.getAttribute('lat'));
+  const longitude = Number(node.getAttribute('lon'));
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+
+  const nameNode = node.querySelector('name');
+  const descNode = node.querySelector('desc');
+  const timeNode = node.querySelector('time');
+  const label = nameNode ? nameNode.textContent.trim() : `${pointType} ${index + 1}`;
+  const description = descNode ? descNode.textContent.trim() : '';
+  const mileMarker = extractMileMarker(description);
+  const dateValue = normalizeDateFromTimestamp(timeNode ? timeNode.textContent.trim() : '');
+  const gpsValue = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+
+  return normalizeIncident({
+    id: `imported-${Date.now()}-${index}-${Math.random().toString(16).slice(2, 8)}`,
+    type: 'Trail Hazard',
+    location: label || `${pointType} ${index + 1}`,
+    trailName: label || '',
+    mileMarker,
+    priority: 'Medium',
+    status: 'Pending Trail Match',
+    gps: gpsValue,
+    date: dateValue,
+    photo: ''
+  });
+}
+
+function extractMileMarker(descriptionText) {
+  const match = String(descriptionText || '').match(/mile(?:\s*marker)?[:\s]+([0-9]+(?:\.[0-9]+)?)/i);
+  return match ? match[1] : '';
+}
+
+function normalizeDateFromTimestamp(timestamp) {
+  if (!timestamp) return new Date().toISOString().slice(0, 10);
+  const parsed = new Date(timestamp);
+  if (Number.isNaN(parsed.getTime())) return new Date().toISOString().slice(0, 10);
+  return parsed.toISOString().slice(0, 10);
+}
+
 function toIsoTimestamp(dateValue) {
   const value = String(dateValue || '').trim();
   if (!value) return new Date().toISOString();
@@ -679,6 +1026,15 @@ function toIsoTimestamp(dateValue) {
   const parsed = new Date(`${value}T00:00:00Z`);
   if (Number.isNaN(parsed.getTime())) return new Date().toISOString();
   return parsed.toISOString();
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : '');
+    reader.onerror = () => reject(new Error('Failed to read selected file.'));
+    reader.readAsDataURL(file);
+  });
 }
 
 function escapeXml(value) {

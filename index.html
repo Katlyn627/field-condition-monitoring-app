@@ -64,7 +64,9 @@
         </article>
       </section>
       <div class="dashboard-actions">
-        <button id="exportGpxButton" class="secondary-button" type="button">Export GPX Trail File</button>
+        <button id="exportGpxButton" class="secondary-button" type="button">Export GPX File</button>
+        <button id="importGpxButton" class="secondary-button" type="button">Import GPX / Trail Track</button>
+        <input id="importGpxInput" type="file" accept=".gpx,.xml,application/gpx+xml,text/xml" hidden>
       </div>
 
       <main class="main-grid">
@@ -87,7 +89,7 @@
 
               <label>
                 <span>Location / Trailhead</span>
-                <input id="location" name="location" type="text" placeholder="e.g., Sunset Trailhead, Tilden" required />
+                <input id="location" name="location" type="text" placeholder="e.g., Sunset Trailhead, Tilden" />
               </label>
 
               <label>
@@ -104,9 +106,15 @@
                 <span>Status</span>
                 <select id="status" name="status" required>
                   <option value="Flagged">Flagged</option>
+                  <option value="Pending Trail Match">Pending Trail Match</option>
                   <option value="Reported to District">Reported to District</option>
                   <option value="Resolved">Resolved</option>
                 </select>
+              </label>
+
+              <label class="full-width check-row">
+                <input id="pendingTrailMatch" name="pendingTrailMatch" type="checkbox" />
+                <span>Offline / post-hike entry (mark as Pending Trail Match)</span>
               </label>
 
               <label>
@@ -153,6 +161,7 @@
                 <select id="statusFilter">
                   <option value="all">All Statuses</option>
                   <option value="Flagged">Flagged</option>
+                  <option value="Pending Trail Match">Pending Trail Match</option>
                   <option value="Reported to District">Reported to District</option>
                   <option value="Resolved">Resolved</option>
                 </select>

@@ -196,6 +196,9 @@ textarea {
 
 .dashboard-actions {
   margin: 12px 0 14px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
 .dashboard-actions .secondary-button {
@@ -302,6 +305,24 @@ button:focus-visible {
 
 .full-width {
   grid-column: 1 / -1;
+}
+
+.check-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.check-row input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+  margin: 0;
+}
+
+.check-row span {
+  font-size: 0.86rem;
 }
 
 .gps-row {
@@ -529,6 +550,71 @@ tbody td::before {
   gap: 8px;
 }
 
+.external-map-group {
+  border: 1px solid rgba(37, 92, 72, 0.12);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.external-map-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.external-map-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.trail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.trail-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(37, 92, 72, 0.1);
+  color: var(--forest-700);
+}
+
+.inline-edit-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(37, 92, 72, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.inline-edit-form label {
+  font-weight: 600;
+  gap: 6px;
+}
+
+.inline-edit-form label span {
+  font-size: 0.75rem;
+}
+
+.inline-edit-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
 .toggle-btn {
   background: rgba(37, 92, 72, 0.1);
   color: var(--forest-900);
@@ -622,8 +708,8 @@ tbody td::before {
   }
 
   .dashboard-actions .secondary-button {
-    width: auto;
-    min-width: 220px;
+    width: 100%;
+    min-width: 0;
   }
 
   .main-grid {
@@ -702,8 +788,16 @@ tbody td::before {
     flex-wrap: wrap;
   }
 
+  .external-map-actions {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  .inline-edit-actions {
+    grid-template-columns: repeat(2, minmax(130px, 1fr));
+  }
+
   .table-button {
-    min-height: 42px;
+    min-height: 48px;
     padding: 8px 10px;
     font-size: 0.74rem;
   }
