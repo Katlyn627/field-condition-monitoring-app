@@ -2,9 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#2e4a3b" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>East Bay Field & Trail Condition Tracker</title>
     <link rel="manifest" href="manifest.json" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,9 +29,11 @@
           <p class="eyebrow">East Bay Regional Park Stewardship</p>
           <h1>Field & Trail Condition Tracker</h1>
         </div>
-        <div class="header-pill">
-          <span class="status-dot"></span>
-          Live field monitoring
+        <div class="header-actions">
+          <div class="header-pill" id="offlineStatus" aria-live="polite">
+            <span class="status-dot"></span>
+            <span>Online</span>
+          </div>
         </div>
       </header>
 
@@ -99,8 +102,9 @@
                 <span>GPS Coordinates</span>
                 <div class="gps-row">
                   <input id="gps" name="gps" type="text" placeholder="37.8741,-122.2861" />
-                  <button id="gpsLocationButton" type="button" class="secondary-button">Use GPS</button>
+                  <button id="gpsLocationButton" type="button" class="secondary-button">Use Current Location</button>
                 </div>
+                <span id="gpsStatusBadge" class="gps-flag" hidden>GPS ready</span>
               </label>
 
               <label>
@@ -112,11 +116,15 @@
                 <span>Photo URL</span>
                 <input id="photoUrl" name="photo" type="url" placeholder="https://example.com/image.jpg" />
               </label>
+
+              <label class="full-width">
+                <span>Camera / Photo Upload</span>
+                <input id="photoInput" type="file" accept="image/*" capture="environment" />
+                <span id="photoStatusBadge" class="photo-flag" hidden>Photo attached</span>
+              </label>
             </div>
 
-            <div class="photo-preview" id="photoPreviewWrap" hidden>
-              <img id="photoPreview" src="" alt="Incident preview" />
-            </div>
+            <div class="photo-preview" id="photoPreviewContainer" hidden></div>
 
             <button type="submit" class="primary-button">Log Incident</button>
           </form>

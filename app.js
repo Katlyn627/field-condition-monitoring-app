@@ -47,23 +47,39 @@ const form = document.getElementById('incidentForm');
 const tableBody = document.getElementById('incidentTableBody');
 const statusFilter = document.getElementById('statusFilter');
 const typeFilter = document.getElementById('typeFilter');
+const locationInput = document.getElementById('location');
 const photoUrlInput = document.getElementById('photoUrl');
-const photoPreviewWrap = document.getElementById('photoPreviewWrap');
-const photoPreview = document.getElementById('photoPreview');
+const photoInput = document.getElementById('photoInput');
+const photoPreviewContainer = document.getElementById('photoPreviewContainer');
 const resumeOutput = document.getElementById('resumeOutput');
 const copyResumeButton = document.getElementById('copyResumeButton');
 const gpsInput = document.getElementById('gps');
 const gpsLocationButton = document.getElementById('gpsLocationButton');
+const gpsStatusBadge = document.getElementById('gpsStatusBadge');
+const photoStatusBadge = document.getElementById('photoStatusBadge');
+const offlineStatus = document.getElementById('offlineStatus');
 
 const state = {
-  incidents: loadIncidents()
+  incidents: loadIncidents(),
+  selectedPhotoDataUrl: ''
 };
+
+const TRAILHEADS = [
+  { name: 'Sunset Trailhead, Tilden Regional Park', latitude: 37.8965, longitude: -122.2486 },
+  { name: 'Morrison Canyon, Mt. Diablo State Park', latitude: 37.8819, longitude: -121.9188 },
+  { name: 'Redwood Ridge Trailhead, Redwood Regional Park', latitude: 37.8222, longitude: -122.1887 },
+  { name: 'Del Valle Regional Park', latitude: 37.6036, longitude: -121.7608 },
+  { name: 'Sunol Wilderness, Sunol', latitude: 37.4957, longitude: -121.8812 }
+];
 
 initialize();
 
 function initialize() {
   setDefaultDate();
   attachEventListeners();
+  updateConnectionStatus();
+  updateGpsStatusBadge(false);
+  updatePhotoStatusBadge(false);
   renderDashboard();
   renderTable();
   renderResumeOutput();
@@ -73,15 +89,46 @@ function attachEventListeners() {
   form.addEventListener('submit', handleFormSubmit);
   statusFilter.addEventListener('change', renderTable);
   typeFilter.addEventListener('change', renderTable);
-  photoUrlInput.addEventListener('input', handlePhotoPreview);
+  photoUrlInput.addEventListener('input', () => {
+    state.selectedPhotoDataUrl = '';
+    handlePhotoPreview();
+  });
+  photoInput.addEventListener('change', handlePhotoUpload);
   copyResumeButton.addEventListener('click', copyResumeBullets);
   tableBody.addEventListener('click', handleTableAction);
+  gpsInput.addEventListener('input', () => {
+    updateGpsStatusBadge(Boolean(gpsInput.value.trim()) && gpsInput.value !== 'Location unavailable');
+  });
   gpsLocationButton.addEventListener('click', handleGeolocationCapture);
+  window.addEventListener('online', updateConnectionStatus);
+  window.addEventListener('offline', updateConnectionStatus);
 }
 
 function setDefaultDate() {
   const dateInput = document.getElementById('incidentDate');
   dateInput.value = new Date().toISOString().slice(0, 10);
+}
+
+function updateConnectionStatus() {
+  if (!offlineStatus) return;
+
+  const online = navigator.onLine;
+  offlineStatus.innerHTML = `
+    <span class="status-dot ${online ? 'online' : 'offline'}"></span>
+    <span>${online ? 'Online' : 'Offline'}</span>
+  `;
+  offlineStatus.classList.toggle('offline', !online);
+}
+
+function updateGpsStatusBadge(hasCoordinates) {
+  if (!gpsStatusBadge) return;
+  gpsStatusBadge.hidden = !hasCoordinates;
+  gpsStatusBadge.textContent = hasCoordinates ? 'GPS ready' : 'GPS ready';
+}
+
+function updatePhotoStatusBadge(hasPhoto) {
+  if (!photoStatusBadge) return;
+  photoStatusBadge.hidden = !hasPhoto;
 }
 
 function handleGeolocationCapture() {
@@ -92,20 +139,61 @@ function handleGeolocationCapture() {
 
   navigator.geolocation.getCurrentPosition(
     (position) => {
-      const latitude = position.coords.latitude.toFixed(5);
-      const longitude = position.coords.longitude.toFixed(5);
-      gpsInput.value = `${latitude}, ${longitude}`;
+      const latitude = Number(position.coords.latitude);
+      const longitude = Number(position.coords.longitude);
+      const formattedLatitude = latitude.toFixed(5);
+      const formattedLongitude = longitude.toFixed(5);
+      gpsInput.value = `${formattedLatitude}, ${formattedLongitude}`;
+      updateGpsStatusBadge(true);
+
+      const trailheadName = findNearbyTrailhead(latitude, longitude);
+      if (trailheadName && !locationInput.value.trim()) {
+        locationInput.value = trailheadName;
+      }
     },
     (error) => {
       gpsInput.value = 'Location unavailable';
+      updateGpsStatusBadge(false);
       console.error('Geolocation error:', error);
     },
     {
       enableHighAccuracy: true,
-      timeout: 30000,
+      timeout: 15000,
       maximumAge: 0
     }
   );
+}
+
+function findNearbyTrailhead(latitude, longitude) {
+  let closestTrailhead = null;
+  let shortestDistance = Infinity;
+
+  TRAILHEADS.forEach((trailhead) => {
+    const distanceKm = calculateDistanceKm(latitude, longitude, trailhead.latitude, trailhead.longitude);
+    if (distanceKm < shortestDistance) {
+      shortestDistance = distanceKm;
+      closestTrailhead = trailhead;
+    }
+  });
+
+  return shortestDistance <= 0.5 ? closestTrailhead.name : null;
+}
+
+function calculateDistanceKm(latitude1, longitude1, latitude2, longitude2) {
+  const earthRadiusKm = 6371;
+  const latitudeDelta = toRadians(latitude2 - latitude1);
+  const longitudeDelta = toRadians(longitude2 - longitude1);
+
+  const a =
+    Math.sin(latitudeDelta / 2) * Math.sin(latitudeDelta / 2) +
+    Math.cos(toRadians(latitude1)) * Math.cos(toRadians(latitude2)) *
+    Math.sin(longitudeDelta / 2) * Math.sin(longitudeDelta / 2);
+
+  return 2 * earthRadiusKm * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function toRadians(value) {
+  return (value * Math.PI) / 180;
 }
 
 function loadIncidents() {
@@ -193,14 +281,14 @@ function renderTable() {
 
       return `
         <tr>
-          <td><span class="badge ${toTypeClass(incident.type)}">${safeType}</span></td>
-          <td>${safeLocation}</td>
-          <td><span class="badge ${priorityClass}">${safePriority}</span></td>
-          <td><span class="badge ${statusClass}">${safeStatus}</span></td>
-          <td>${safeGps}</td>
-          <td>${safeDate}</td>
-          <td>${photoCell}</td>
-          <td>
+          <td data-label="Type"><span class="badge ${toTypeClass(incident.type)}">${safeType}</span></td>
+          <td data-label="Location">${safeLocation}</td>
+          <td data-label="Priority"><span class="badge ${priorityClass}">${safePriority}</span></td>
+          <td data-label="Status"><span class="badge ${statusClass}">${safeStatus}</span></td>
+          <td data-label="GPS">${safeGps}</td>
+          <td data-label="Date">${safeDate}</td>
+          <td data-label="Photo">${photoCell}</td>
+          <td data-label="Actions">
             <div class="actions">
               <button class="table-button toggle-btn" data-action="toggle" data-id="${escapeAttribute(incident.id)}">${actionLabel}</button>
               <button class="table-button remove-btn" data-action="remove" data-id="${escapeAttribute(incident.id)}">Remove</button>
@@ -262,7 +350,7 @@ function handleFormSubmit(event) {
     status: String(formData.get('status') || 'Flagged'),
     gps: String(formData.get('gps') || '').trim(),
     date: String(formData.get('date') || new Date().toISOString().slice(0, 10)),
-    photo: sanitizeImageUrl(String(formData.get('photo') || ''))
+    photo: getSelectedPhotoValue()
   };
 
   if (!incident.location) {
@@ -275,13 +363,26 @@ function handleFormSubmit(event) {
   renderTable();
   renderResumeOutput();
   form.reset();
+  resetPhotoSelection();
   setDefaultDate();
   handlePhotoPreview();
+}
+
+function getSelectedPhotoValue() {
+  if (state.selectedPhotoDataUrl) {
+    return state.selectedPhotoDataUrl;
+  }
+
+  return sanitizeImageUrl(photoUrlInput.value);
 }
 
 function sanitizeImageUrl(url) {
   const trimmed = String(url || '').trim();
   if (!trimmed) return '';
+
+  if (trimmed.startsWith('data:image/')) {
+    return trimmed;
+  }
 
   try {
     const parsed = new URL(trimmed);
@@ -295,16 +396,60 @@ function sanitizeImageUrl(url) {
   return '';
 }
 
-function handlePhotoPreview() {
-  const url = sanitizeImageUrl(photoUrlInput.value);
-  if (!url) {
-    photoPreviewWrap.hidden = true;
-    photoPreview.src = '';
+function handlePhotoUpload(event) {
+  const [file] = event.target.files || [];
+  if (!file) {
+    resetPhotoSelection();
     return;
   }
 
-  photoPreview.src = url;
-  photoPreviewWrap.hidden = false;
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.selectedPhotoDataUrl = typeof reader.result === 'string' ? reader.result : '';
+    updatePhotoStatusBadge(Boolean(state.selectedPhotoDataUrl));
+    renderPhotoPreview();
+  };
+  reader.onerror = () => {
+    resetPhotoSelection();
+  };
+
+  reader.readAsDataURL(file);
+}
+
+function resetPhotoSelection() {
+  state.selectedPhotoDataUrl = '';
+  photoInput.value = '';
+  photoUrlInput.value = '';
+  updatePhotoStatusBadge(false);
+  renderPhotoPreview();
+}
+
+function handlePhotoPreview() {
+  if (state.selectedPhotoDataUrl) {
+    renderPhotoPreview();
+    return;
+  }
+
+  const url = sanitizeImageUrl(photoUrlInput.value);
+  if (!url) {
+    renderPhotoPreview();
+    return;
+  }
+
+  renderPhotoPreview(url);
+}
+
+function renderPhotoPreview(imageSource = state.selectedPhotoDataUrl || sanitizeImageUrl(photoUrlInput.value)) {
+  if (!imageSource) {
+    photoPreviewContainer.hidden = true;
+    photoPreviewContainer.innerHTML = '';
+    updatePhotoStatusBadge(false);
+    return;
+  }
+
+  photoPreviewContainer.innerHTML = `<img src="${escapeAttribute(imageSource)}" alt="Incident preview" />`;
+  photoPreviewContainer.hidden = false;
+  updatePhotoStatusBadge(Boolean(imageSource));
 }
 
 function renderResumeOutput() {
