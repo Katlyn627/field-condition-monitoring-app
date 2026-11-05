@@ -1,8 +1,4 @@
 :root {
-  --container-width: 1200px;
-  --touch-target: 48px;
-  --mobile-padding: 12px;
-  --desktop-padding: 24px;
   --forest-900: #173c34;
   --forest-700: #245943;
   --forest-500: #3c7b5f;
@@ -18,7 +14,6 @@
   --ink-700: #2e3a34;
   --muted: #5d6c63;
   --white: #ffffff;
-  --surface-color: #f2f7f2;
   --shadow: 0 14px 28px rgba(20, 41, 32, 0.12);
 }
 
@@ -51,28 +46,14 @@ button,
 input,
 select,
 textarea {
-  display: block;
-  width: 100%;
-  min-height: var(--touch-target);
-  font-size: 16px;
   font: inherit;
 }
 
 .app-shell {
   width: 100%;
-  max-width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 84px var(--mobile-padding) 24px;
-  box-sizing: border-box;
-}
-
-.dashboard,
-.form-container,
-.log-container {
-  width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
-  box-sizing: border-box;
+  padding: 84px 12px 24px;
 }
 
 .topbar {
@@ -170,7 +151,7 @@ textarea {
 
 .dashboard {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
@@ -279,11 +260,11 @@ input,
 select,
 textarea {
   width: 100%;
-  min-height: var(--touch-target);
+  min-height: 48px;
   border: 1px solid rgba(28, 66, 56, 0.16);
   border-radius: 12px;
   padding: 12px 14px;
-  background: var(--surface-color);
+  background: var(--sage-100);
   color: var(--ink-900);
   font-size: 16px;
   line-height: 1.35;
@@ -295,17 +276,15 @@ textarea {
 }
 
 select {
-  min-height: var(--touch-target);
+  min-height: 50px;
   padding-right: 40px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
   text-overflow: ellipsis;
   appearance: none;
-  background-color: var(--surface-color);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'%3E%3Cpath d='M2 2l5 5 5-5' fill='none' stroke='%23245943' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-position: calc(100% - 14px) 50%;
-  background-size: 14px 10px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--forest-700) 50%), linear-gradient(135deg, var(--forest-700) 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(50% - 2px), calc(100% - 12px) calc(50% - 2px);
+  background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
 }
 
@@ -397,15 +376,13 @@ button:focus-visible {
 .primary-button,
 .secondary-button,
 .table-button {
-  display: block;
-  width: 100%;
   border: none;
   border-radius: 12px;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, filter 0.15s ease;
   font-weight: 700;
-  min-height: var(--touch-target);
-  font-size: 16px;
+  min-height: 48px;
+  font-size: 0.98rem;
   touch-action: manipulation;
 }
 
@@ -461,8 +438,6 @@ button:focus-visible {
 
 .table-wrap {
   overflow-x: visible;
-  width: 100%;
-  max-width: 100%;
 }
 
 table,
@@ -662,30 +637,50 @@ tbody td::before {
   line-height: 1.6;
 }
 
-@media (max-width: 767px) {
+@media (min-width: 600px) {
+  .app-shell {
+    padding: 94px 18px 32px;
+  }
+
   .topbar {
-    padding: 9px 10px;
+    padding: 12px 18px;
   }
 
   .topbar h1 {
-    font-size: 1rem;
+    font-size: 1.22rem;
+  }
+
+  .dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .field-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gps-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .gps-row .secondary-button {
+    width: auto;
+    min-width: 176px;
+  }
+
+  .form-actions {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
 @media (min-width: 768px) {
   .app-shell {
-    max-width: var(--container-width);
-    padding: 104px var(--desktop-padding) 40px;
+    padding: 104px 24px 40px;
   }
 
   .topbar {
     border: 1px solid rgba(20, 53, 42, 0.1);
     border-radius: 16px;
-    width: min(var(--container-width), calc(100vw - (var(--desktop-padding) * 2)));
+    width: min(1200px, calc(100vw - 24px));
     left: 50%;
     transform: translateX(-50%);
     top: 10px;
@@ -720,23 +715,6 @@ tbody td::before {
   .main-grid {
     grid-template-columns: minmax(300px, 0.95fr) minmax(450px, 1.45fr);
     gap: 22px;
-  }
-
-  .field-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .gps-row {
-    grid-template-columns: 1fr auto;
-  }
-
-  .gps-row .secondary-button {
-    width: auto;
-    min-width: 176px;
-  }
-
-  .form-actions {
-    grid-template-columns: 1fr 1fr;
   }
 
   .panel {
@@ -819,7 +797,7 @@ tbody td::before {
   }
 
   .table-button {
-    min-height: var(--touch-target);
+    min-height: 48px;
     padding: 8px 10px;
     font-size: 0.74rem;
   }
