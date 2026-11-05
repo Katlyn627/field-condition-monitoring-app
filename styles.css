@@ -74,8 +74,7 @@ textarea {
   max-width: 1200px;
   margin: 0 auto;
   box-sizing: border-box;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
 }
 
 .topbar {
@@ -499,12 +498,9 @@ tbody tr {
 }
 
 tbody td {
-  padding: 8px 12px;
+  padding: 0;
   border-bottom: none;
-  min-width: 80px;
-  white-space: normal !important;
-  word-break: normal !important;
-  writing-mode: horizontal-tb !important;
+  min-width: 0;
 }
 
 tbody td::before {
@@ -516,8 +512,6 @@ tbody td::before {
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 6px;
-  white-space: normal !important;
-  word-break: normal !important;
 }
 
 .badge {
