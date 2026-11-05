@@ -65,7 +65,6 @@ textarea {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  box-sizing: border-box;
   padding: 16px;
   overflow-x: hidden;
 }
@@ -461,16 +460,45 @@ button:focus-visible {
 }
 
 .table-wrap,
-.table-responsive,
-.log-container {
+.table-responsive {
   width: 100%;
   max-width: 100%;
 }
 
-.table-responsive,
-.log-container {
+.table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+table {
+  display: table !important;
+  width: 100% !important;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+thead {
+  display: table-header-group !important;
+}
+
+tbody {
+  display: table-row-group !important;
+}
+
+tr {
+  display: table-row !important;
+}
+
+th,
+td {
+  display: table-cell !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  writing-mode: horizontal-tb !important;
+  text-align: left;
+  padding: 12px 14px;
+  vertical-align: middle;
 }
 
 .actions {
@@ -483,13 +511,6 @@ button:focus-visible {
 .actions > * {
   flex: 1 1 140px;
   min-width: 0;
-}
-
-.map-btn-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  min-width: 180px;
 }
 
 .badge {
@@ -705,47 +726,6 @@ button:focus-visible {
   display: none;
 }
 
-@media (min-width: 768px) {
-  table {
-    display: table !important;
-    width: 100% !important;
-    border-collapse: collapse;
-    layout: auto;
-  }
-
-  thead {
-    display: table-header-group !important;
-  }
-
-  tbody {
-    display: table-row-group !important;
-  }
-
-  tr {
-    display: table-row !important;
-    margin: 0;
-    background: transparent;
-    border-bottom: 1px solid #e2e8f0;
-  }
-
-  th,
-  td {
-    display: table-cell !important;
-    padding: 12px 10px;
-    vertical-align: middle;
-    text-align: left;
-    white-space: normal !important;
-    word-break: normal !important;
-  }
-
-  .map-btn-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px;
-    min-width: 180px;
-  }
-}
-
 @media (max-width: 767px) {
   .mobile-tabs {
     display: flex;
@@ -806,9 +786,9 @@ button:focus-visible {
     margin-bottom: 16px;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 14px;
+    padding: 12px;
     background: #fff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
   td {
@@ -817,11 +797,13 @@ button:focus-visible {
     align-items: center;
     padding: 8px 0;
     border-bottom: 1px solid #f1f5f9;
+    text-align: right;
   }
 
   td::before {
     content: attr(data-label);
     font-weight: 600;
+    text-align: left;
     color: #475569;
   }
 
@@ -899,11 +881,13 @@ button:focus-visible {
     display: none;
   }
 
+  /* On desktop, show form and logs panels (override hidden attribute) */
   #form-panel,
   #logs-panel {
     display: block !important;
   }
 
+  /* Hide dashboard panel on desktop to show form + logs in grid */
   #dashboard-panel {
     display: none;
   }
@@ -1015,35 +999,36 @@ button:focus-visible {
   }
 
   table {
-    display: table !important;
-    width: 100% !important;
+    width: 100%;
     border-collapse: collapse;
-    layout: auto;
+    table-layout: fixed;
+    min-width: 0;
+  }
+
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: revert;
   }
 
   thead {
-    display: table-header-group !important;
+    display: table-header-group;
   }
 
   tbody {
-    display: table-row-group !important;
+    display: table-row-group;
   }
 
-  tr {
-    display: table-row !important;
-    margin: 0;
+  tbody tr {
+    display: table-row;
     background: transparent;
-    border-bottom: 1px solid #e2e8f0;
-  }
-
-  th,
-  td {
-    display: table-cell !important;
-    padding: 12px 10px;
-    vertical-align: middle;
-    text-align: left;
-    white-space: normal !important;
-    word-break: normal !important;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    height: auto;
   }
 
   thead th {
@@ -1124,5 +1109,11 @@ button:focus-visible {
 
   .inline-edit-actions {
     grid-template-columns: repeat(2, minmax(130px, 1fr));
+  }
+
+  .table-button {
+    min-height: var(--touch-target);
+    padding: 8px 10px;
+    font-size: 0.74rem;
   }
 }
