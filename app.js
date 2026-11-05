@@ -339,6 +339,10 @@ function estimateHours(item) {
   return Number((baseMap[item.priority] * typeMap[item.type]).toFixed(1));
 }
 
+function renderTableCell(label, content) {
+  return `<td data-label="${escapeAttribute(label)}">${content}</td>`;
+}
+
 function renderTable() {
   const statusValue = statusFilter.value;
   const typeValue = typeFilter.value;
@@ -379,14 +383,14 @@ function renderTable() {
 
       return `
         <tr>
-          <td data-label="Type"><span class="badge ${toTypeClass(incident.type)}">${safeType}</span></td>
-          <td data-label="Location">${safeLocation}${trailMeta}</td>
-          <td data-label="Priority"><span class="badge ${priorityClass}">${safePriority}</span></td>
-          <td data-label="Status"><span class="badge ${statusClass}">${safeStatus}</span></td>
-          <td data-label="GPS">${safeGps}</td>
-          <td data-label="Date">${safeDate}</td>
-          <td data-label="Photo">${photoCell}</td>
-          <td data-label="Actions">
+          ${renderTableCell('Type', `<span class="badge ${toTypeClass(incident.type)}">${safeType}</span>`) }
+          ${renderTableCell('Location', `${safeLocation}${trailMeta}`)}
+          ${renderTableCell('Priority', `<span class="badge ${priorityClass}">${safePriority}</span>`) }
+          ${renderTableCell('Status', `<span class="badge ${statusClass}">${safeStatus}</span>`) }
+          ${renderTableCell('GPS', safeGps)}
+          ${renderTableCell('Date', safeDate)}
+          ${renderTableCell('Photo', photoCell)}
+          ${renderTableCell('Actions', `
             <div class="actions">
               ${externalMapActions}
               <button class="table-button" data-action="edit-match" data-id="${escapeAttribute(incident.id)}">Update Location / Match Trail</button>
@@ -394,7 +398,7 @@ function renderTable() {
               <button class="table-button remove-btn" data-action="remove" data-id="${escapeAttribute(incident.id)}">Remove</button>
               ${editPanel}
             </div>
-          </td>
+          `)}
         </tr>
       `;
     })

@@ -58,24 +58,20 @@ textarea {
   font: inherit;
 }
 
-.app-shell {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 84px var(--mobile-padding) 24px;
-  box-sizing: border-box;
-  overflow-x: hidden;
-}
-
+.app-shell,
 .dashboard,
 .form-container,
 .log-container {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  box-sizing: border-box;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  padding: 16px;
+  overflow-x: hidden;
+}
+
+.app-shell {
+  padding-top: 84px;
+  padding-bottom: 24px;
 }
 
 .topbar {
@@ -463,61 +459,58 @@ button:focus-visible {
   min-width: 0;
 }
 
-.table-wrap {
-  overflow-x: visible;
+.table-wrap,
+.table-responsive {
   width: 100%;
   max-width: 100%;
 }
 
-table,
-thead,
-tbody,
-th,
-td,
-tr {
-  display: block;
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  display: table !important;
+  width: 100% !important;
+  border-collapse: collapse;
+  table-layout: auto;
 }
 
 thead {
-  display: none;
+  display: table-header-group !important;
 }
 
 tbody {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: table-row-group !important;
 }
 
-tbody tr {
-  display: grid;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid rgba(28, 66, 56, 0.1);
-  border-radius: 16px;
-  background: rgba(242, 247, 242, 0.8);
-  width: 100%;
+tr {
+  display: table-row !important;
 }
 
-tbody td {
-  padding: 8px 12px;
-  border-bottom: none;
-  min-width: 80px;
+th,
+td {
+  display: table-cell !important;
   white-space: normal !important;
   word-break: normal !important;
+  overflow-wrap: break-word !important;
   writing-mode: horizontal-tb !important;
+  text-align: left;
+  padding: 12px 14px;
+  vertical-align: middle;
 }
 
-tbody td::before {
-  content: attr(data-label);
-  display: block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 6px;
-  white-space: normal !important;
-  word-break: normal !important;
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.actions > * {
+  flex: 1 1 140px;
+  min-width: 0;
 }
 
 .badge {
@@ -776,12 +769,6 @@ tbody td::before {
     min-height: 48px;
   }
 
-  table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-  }
-
   table,
   thead,
   tbody,
@@ -793,49 +780,38 @@ tbody td::before {
 
   thead {
     display: none;
-    height: 0;
-    overflow: hidden;
   }
 
-  tbody {
+  tr {
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  td {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 0;
-  }
-
-  tbody tr {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-    padding: 14px;
-    border: 1px solid rgba(28, 66, 56, 0.1);
-    border-radius: 14px;
-    background: rgba(242, 247, 242, 0.9);
-    width: 100%;
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-
-  tbody td {
-    display: block;
+    justify-content: space-between;
+    align-items: center;
     padding: 8px 0;
-    border-bottom: none;
-    text-align: left;
-    min-width: 0;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: right;
   }
 
-  tbody td::before {
+  td::before {
     content: attr(data-label);
-    display: block;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 6px;
+    font-weight: 600;
+    text-align: left;
+    color: #475569;
+  }
+
+  td:last-child {
+    border-bottom: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
   }
 
   .incident-actions {
