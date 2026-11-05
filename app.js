@@ -53,6 +53,7 @@ const photoInput = document.getElementById('photoInput');
 const photoPreviewContainer = document.getElementById('photoPreviewContainer');
 const resumeOutput = document.getElementById('resumeOutput');
 const copyResumeButton = document.getElementById('copyResumeButton');
+const exportGpxButton = document.getElementById('exportGpxButton');
 const gpsInput = document.getElementById('gps');
 const gpsLocationButton = document.getElementById('gpsLocationButton');
 const gpsStatusBadge = document.getElementById('gpsStatusBadge');
@@ -95,6 +96,7 @@ function attachEventListeners() {
   });
   photoInput.addEventListener('change', handlePhotoUpload);
   copyResumeButton.addEventListener('click', copyResumeBullets);
+  exportGpxButton.addEventListener('click', handleGpxExport);
   tableBody.addEventListener('click', handleTableAction);
   gpsInput.addEventListener('input', () => {
     updateGpsStatusBadge(Boolean(gpsInput.value.trim()) && gpsInput.value !== 'Location unavailable');
@@ -274,6 +276,10 @@ function renderTable() {
       const photoCell = incident.photo
         ? `<img class="photo-thumb" src="${escapeAttribute(incident.photo)}" alt="${safePhotoAlt}" />`
         : '<span class="empty-state">None</span>';
+      const hasGpsCoordinates = Boolean(parseGpsCoordinates(incident.gps));
+      const mapButton = hasGpsCoordinates
+        ? `<button class="table-button" data-action="map" data-id="${escapeAttribute(incident.id)}">View on Map</button>`
+        : '<button class="table-button" disabled title="Add valid GPS coordinates to use map view">View on Map</button>';
 
       const priorityClass = toPriorityClass(incident.priority);
       const statusClass = toStatusClass(incident.status);
@@ -290,6 +296,7 @@ function renderTable() {
           <td data-label="Photo">${photoCell}</td>
           <td data-label="Actions">
             <div class="actions">
+              ${mapButton}
               <button class="table-button toggle-btn" data-action="toggle" data-id="${escapeAttribute(incident.id)}">${actionLabel}</button>
               <button class="table-button remove-btn" data-action="remove" data-id="${escapeAttribute(incident.id)}">Remove</button>
             </div>
@@ -323,6 +330,11 @@ function handleTableAction(event) {
   if (incidentIndex === -1) return;
 
   const incident = state.incidents[incidentIndex];
+
+  if (action === 'map') {
+    openIncidentInMap(incident);
+    return;
+  }
 
   if (action === 'toggle') {
     incident.status = incident.status === 'Resolved' ? 'Flagged' : 'Resolved';
@@ -536,4 +548,136 @@ function toTypeClass(type) {
   if (type === 'Invasive Species') return 'reported';
   if (type === 'Infrastructure/Trash') return 'resolved';
   return 'low';
+}
+
+function parseGpsCoordinates(gpsValue) {
+  const value = String(gpsValue || '').trim();
+  if (!value) return null;
+
+  const [latitudeRaw, longitudeRaw] = value.split(',').map((part) => part && part.trim());
+  if (!latitudeRaw || !longitudeRaw) return null;
+
+  const latitude = Number(latitudeRaw);
+  const longitude = Number(longitudeRaw);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
+
+  return { latitude, longitude };
+}
+
+function openIncidentInMap(incident) {
+  const coordinates = parseGpsCoordinates(incident.gps);
+  if (!coordinates) {
+    return;
+  }
+
+  const mapUrl = getMapDeepLink(coordinates.latitude, coordinates.longitude);
+  if (mapUrl.startsWith('geo:')) {
+    window.location.href = mapUrl;
+    return;
+  }
+  window.open(mapUrl, '_blank', 'noopener');
+}
+
+function getMapDeepLink(latitude, longitude) {
+  const formattedLatitude = Number(latitude).toFixed(6);
+  const formattedLongitude = Number(longitude).toFixed(6);
+  const isAndroidMobile = /Android/i.test(navigator.userAgent);
+
+  if (isAndroidMobile) {
+    return `geo:${formattedLatitude},${formattedLongitude}`;
+  }
+
+  return `https://www.google.com/maps?q=${formattedLatitude},${formattedLongitude}`;
+}
+
+function handleGpxExport() {
+  const incidentsWithCoordinates = state.incidents
+    .map((incident) => {
+      const coordinates = parseGpsCoordinates(incident.gps);
+      if (!coordinates) return null;
+      return { ...incident, ...coordinates };
+    })
+    .filter(Boolean);
+
+  if (!incidentsWithCoordinates.length) {
+    window.alert('No incidents with valid GPS coordinates are available for GPX export.');
+    return;
+  }
+
+  const sortedByDate = incidentsWithCoordinates
+    .slice()
+    .sort((left, right) => String(left.date || '').localeCompare(String(right.date || '')));
+
+  const waypointEntries = sortedByDate
+    .map((incident) => {
+      const timestamp = toIsoTimestamp(incident.date);
+      const waypointName = escapeXml(incident.location || incident.type || 'Field Incident');
+      const description = escapeXml(`${incident.type} | ${incident.priority} | ${incident.status}`);
+      return [
+        `  <wpt lat="${incident.latitude}" lon="${incident.longitude}">`,
+        `    <name>${waypointName}</name>`,
+        `    <desc>${description}</desc>`,
+        `    <time>${timestamp}</time>`,
+        '  </wpt>'
+      ].join('\n');
+    })
+    .join('\n');
+
+  const trackEntries = sortedByDate
+    .map((incident) => {
+      const timestamp = toIsoTimestamp(incident.date);
+      return [
+        `      <trkpt lat="${incident.latitude}" lon="${incident.longitude}">`,
+        `        <time>${timestamp}</time>`,
+        '      </trkpt>'
+      ].join('\n');
+    })
+    .join('\n');
+
+  const gpxContent = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<gpx version="1.1" creator="East Bay Field & Trail Condition Tracker" xmlns="http://www.topografix.com/GPX/1/1">',
+    '  <metadata>',
+    '    <name>Field Incident Trail Export</name>',
+    `    <time>${new Date().toISOString()}</time>`,
+    '  </metadata>',
+    waypointEntries,
+    '  <trk>',
+    '    <name>Logged Field Incidents</name>',
+    '    <trkseg>',
+    trackEntries,
+    '    </trkseg>',
+    '  </trk>',
+    '</gpx>'
+  ].join('\n');
+
+  const gpxBlob = new Blob([gpxContent], { type: 'application/gpx+xml' });
+  const downloadUrl = URL.createObjectURL(gpxBlob);
+  const downloadLink = document.createElement('a');
+  downloadLink.href = downloadUrl;
+  downloadLink.download = `field-incidents-${new Date().toISOString().slice(0, 10)}.gpx`;
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  downloadLink.remove();
+  URL.revokeObjectURL(downloadUrl);
+}
+
+function toIsoTimestamp(dateValue) {
+  const value = String(dateValue || '').trim();
+  if (!value) return new Date().toISOString();
+
+  const parsed = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) return new Date().toISOString();
+  return parsed.toISOString();
+}
+
+function escapeXml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
 }
