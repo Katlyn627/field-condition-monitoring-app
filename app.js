@@ -52,6 +52,8 @@ const photoPreviewWrap = document.getElementById('photoPreviewWrap');
 const photoPreview = document.getElementById('photoPreview');
 const resumeOutput = document.getElementById('resumeOutput');
 const copyResumeButton = document.getElementById('copyResumeButton');
+const gpsInput = document.getElementById('gps');
+const gpsLocationButton = document.getElementById('gpsLocationButton');
 
 const state = {
   incidents: loadIncidents()
@@ -74,11 +76,36 @@ function attachEventListeners() {
   photoUrlInput.addEventListener('input', handlePhotoPreview);
   copyResumeButton.addEventListener('click', copyResumeBullets);
   tableBody.addEventListener('click', handleTableAction);
+  gpsLocationButton.addEventListener('click', handleGeolocationCapture);
 }
 
 function setDefaultDate() {
   const dateInput = document.getElementById('incidentDate');
   dateInput.value = new Date().toISOString().slice(0, 10);
+}
+
+function handleGeolocationCapture() {
+  if (!('geolocation' in navigator)) {
+    gpsInput.value = 'Geolocation unavailable';
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const latitude = position.coords.latitude.toFixed(5);
+      const longitude = position.coords.longitude.toFixed(5);
+      gpsInput.value = `${latitude}, ${longitude}`;
+    },
+    (error) => {
+      gpsInput.value = 'Location unavailable';
+      console.error('Geolocation error:', error);
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 30000,
+      maximumAge: 0
+    }
+  );
 }
 
 function loadIncidents() {

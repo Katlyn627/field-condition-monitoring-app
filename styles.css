@@ -203,6 +203,21 @@ textarea:focus {
   grid-column: 1 / -1;
 }
 
+.gps-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gps-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.gps-row .secondary-button {
+  white-space: nowrap;
+}
+
 .photo-preview {
   margin: 18px 0;
   border-radius: 16px;

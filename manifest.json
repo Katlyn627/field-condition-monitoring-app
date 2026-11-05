@@ -1,0 +1,9 @@
+{
+  "name": "East Bay Trail & Field Condition Tracker",
+  "short_name": "TrailTracker",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7f4ee",
+  "theme_color": "#2e4a3b",
+  "description": "Track field conditions, trail hazards, and maintenance issues across East Bay parks."
+}
