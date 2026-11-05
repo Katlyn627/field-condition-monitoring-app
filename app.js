@@ -75,9 +75,7 @@ const offlineStatus = document.getElementById('offlineStatus');
 const state = {
   incidents: loadIncidents(),
   selectedPhotoDataUrl: '',
-  editingIncidentId: null,
-  isMobileLayout: window.innerWidth < 768,
-  layoutViewportWidth: window.innerWidth
+  editingIncidentId: null
 };
 
 const TRAILHEADS = [
@@ -99,7 +97,6 @@ function initialize() {
   renderDashboard();
   renderTable();
   renderResumeOutput();
-  syncLayoutForViewport(false);
 }
 
 function attachEventListeners() {
@@ -125,7 +122,6 @@ function attachEventListeners() {
   gpsLocationButton.addEventListener('click', handleGeolocationCapture);
   window.addEventListener('online', updateConnectionStatus);
   window.addEventListener('offline', updateConnectionStatus);
-  window.addEventListener('resize', handleWindowResize);
 }
 
 function handlePendingTrailMatchToggle() {
@@ -164,35 +160,6 @@ function updateGpsStatusBadge(hasCoordinates) {
 function updatePhotoStatusBadge(hasPhoto) {
   if (!photoStatusBadge) return;
   photoStatusBadge.hidden = !hasPhoto;
-}
-
-let resizeAnimationFrame = null;
-
-function handleWindowResize() {
-  if (resizeAnimationFrame) {
-    cancelAnimationFrame(resizeAnimationFrame);
-  }
-
-  resizeAnimationFrame = requestAnimationFrame(() => {
-    syncLayoutForViewport(true);
-    resizeAnimationFrame = null;
-  });
-}
-
-function syncLayoutForViewport(shouldRenderTable) {
-  const viewportWidth = window.innerWidth;
-  const isMobileLayout = viewportWidth < 768;
-  const layoutChanged = state.isMobileLayout !== isMobileLayout || state.layoutViewportWidth !== viewportWidth;
-
-  state.isMobileLayout = isMobileLayout;
-  state.layoutViewportWidth = viewportWidth;
-  document.body.setAttribute('data-layout-mode', isMobileLayout ? 'mobile' : 'desktop');
-
-  if (shouldRenderTable && layoutChanged) {
-    renderTable();
-  }
-
-  renderPhotoPreview();
 }
 
 function handleGeolocationCapture() {
@@ -339,10 +306,6 @@ function estimateHours(item) {
   return Number((baseMap[item.priority] * typeMap[item.type]).toFixed(1));
 }
 
-function renderTableCell(label, content) {
-  return `<td data-label="${escapeAttribute(label)}">${content}</td>`;
-}
-
 function renderTable() {
   const statusValue = statusFilter.value;
   const typeValue = typeFilter.value;
@@ -383,14 +346,14 @@ function renderTable() {
 
       return `
         <tr>
-          ${renderTableCell('Type', `<span class="badge ${toTypeClass(incident.type)}">${safeType}</span>`) }
-          ${renderTableCell('Location', `${safeLocation}${trailMeta}`)}
-          ${renderTableCell('Priority', `<span class="badge ${priorityClass}">${safePriority}</span>`) }
-          ${renderTableCell('Status', `<span class="badge ${statusClass}">${safeStatus}</span>`) }
-          ${renderTableCell('GPS', safeGps)}
-          ${renderTableCell('Date', safeDate)}
-          ${renderTableCell('Photo', photoCell)}
-          ${renderTableCell('Actions', `
+          <td data-label="Type"><span class="badge ${toTypeClass(incident.type)}">${safeType}</span></td>
+          <td data-label="Location">${safeLocation}${trailMeta}</td>
+          <td data-label="Priority"><span class="badge ${priorityClass}">${safePriority}</span></td>
+          <td data-label="Status"><span class="badge ${statusClass}">${safeStatus}</span></td>
+          <td data-label="GPS">${safeGps}</td>
+          <td data-label="Date">${safeDate}</td>
+          <td data-label="Photo">${photoCell}</td>
+          <td data-label="Actions">
             <div class="actions">
               ${externalMapActions}
               <button class="table-button" data-action="edit-match" data-id="${escapeAttribute(incident.id)}">Update Location / Match Trail</button>
@@ -398,7 +361,7 @@ function renderTable() {
               <button class="table-button remove-btn" data-action="remove" data-id="${escapeAttribute(incident.id)}">Remove</button>
               ${editPanel}
             </div>
-          `)}
+          </td>
         </tr>
       `;
     })
@@ -1081,46 +1044,4 @@ function escapeXml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
-}
-
-/* Mobile Tab Navigation */
-function initializeMobileTabs() {
-  const tabButtons = document.querySelectorAll('[role="tab"]');
-  const tabPanels = document.querySelectorAll('[role="tabpanel"]');
-
-  if (tabButtons.length === 0) return;
-
-  tabButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const targetTabId = button.getAttribute('data-tab');
-      
-      // Deactivate all tabs and hide all panels
-      tabButtons.forEach((btn) => btn.setAttribute('aria-selected', 'false'));
-      tabPanels.forEach((panel) => panel.setAttribute('hidden', ''));
-
-      // Activate clicked tab and show corresponding panel
-      button.setAttribute('aria-selected', 'true');
-      const targetPanel = document.getElementById(`${targetTabId}-panel`);
-      if (targetPanel) {
-        targetPanel.removeAttribute('hidden');
-      }
-    });
-  });
-
-  // Set dashboard tab as active by default
-  const dashboardTab = document.querySelector('[data-tab="dashboard"]');
-  if (dashboardTab) {
-    dashboardTab.setAttribute('aria-selected', 'true');
-    const dashboardPanel = document.getElementById('dashboard-panel');
-    if (dashboardPanel) {
-      dashboardPanel.removeAttribute('hidden');
-    }
-  }
-}
-
-// Initialize tabs when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeMobileTabs);
-} else {
-  initializeMobileTabs();
 }

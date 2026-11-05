@@ -1,26 +1,11 @@
-const CACHE_NAME = 'trailtracker-v7';
-const ASSETS = ['./', './index.html?v=7', './styles.css?v=7', './app.js?v=7', './manifest.json?v=7'];
+const CACHE_NAME = 'trailtracker-v3';
+const ASSETS = ['./', './index.html', './styles.css', './app.js', './manifest.json'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => {
-        // Fetch each asset with cache-busting params, then store under canonical URL
-        return Promise.all(
-          ASSETS.map((url) => {
-            return fetch(url)
-              .then((response) => {
-                if (!response || response.status !== 200) {
-                  throw new Error(`Failed to fetch ${url}`);
-                }
-                // Store under canonical URL (without query param)
-                const canonicalUrl = url.split('?')[0];
-                return cache.put(canonicalUrl, response);
-              });
-          })
-        );
-      })
+      .then((cache) => cache.addAll(ASSETS))
       .then(() => self.skipWaiting())
   );
 });
