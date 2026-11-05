@@ -60,19 +60,21 @@ textarea {
 
 .app-shell {
   width: 100%;
-  max-width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 84px var(--mobile-padding) 24px;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .dashboard,
 .form-container,
 .log-container {
   width: 100%;
-  max-width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .topbar {
@@ -172,6 +174,7 @@ textarea {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  width: 100%;
 }
 
 .stat-card {
@@ -279,7 +282,7 @@ input,
 select,
 textarea {
   width: 100%;
-  min-height: var(--touch-target);
+  min-height: 48px;
   border: 1px solid rgba(28, 66, 56, 0.16);
   border-radius: 12px;
   padding: 12px 14px;
@@ -597,6 +600,12 @@ tbody td::before {
   gap: 8px;
 }
 
+.incident-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
 .trail-meta {
   display: flex;
   flex-wrap: wrap;
@@ -722,6 +731,167 @@ tbody td::before {
   .mobile-tabs {
     display: flex;
   }
+
+  .dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .dashboard-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: 14px;
+    min-height: auto;
+  }
+
+  .stat-card .stat-label {
+    font-size: 0.7rem;
+    margin-bottom: 8px;
+  }
+
+  .stat-card strong {
+    font-size: 1.6rem;
+  }
+
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  input,
+  select,
+  textarea {
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  select {
+    min-height: 48px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
+  }
+
+  thead {
+    display: none;
+    height: 0;
+    overflow: hidden;
+  }
+
+  tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0;
+  }
+
+  tbody tr {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid rgba(28, 66, 56, 0.1);
+    border-radius: 14px;
+    background: rgba(242, 247, 242, 0.9);
+    width: 100%;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  tbody td {
+    display: block;
+    padding: 8px 0;
+    border-bottom: none;
+    text-align: left;
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  tbody td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .incident-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .table-button {
+    width: 100%;
+    min-height: 42px;
+    font-size: 0.78rem;
+    padding: 10px 10px;
+  }
+
+  .external-map-group {
+    border: none;
+    padding: 0;
+    background: transparent;
+  }
+
+  .external-map-label {
+    font-size: 0.68rem;
+    margin-bottom: 6px;
+  }
+
+  .external-map-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .badge {
+    font-size: 0.68rem;
+    padding: 5px 8px;
+  }
+
+  .photo-thumb {
+    width: 56px;
+    height: 56px;
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .inline-edit-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .inline-edit-form {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .inline-edit-form label span {
+    font-size: 0.7rem;
+  }
 }
 
 @media (min-width: 768px) {
@@ -757,14 +927,14 @@ tbody td::before {
 
 @media (min-width: 768px) {
   .app-shell {
-    max-width: var(--container-width);
+    max-width: 1200px;
     padding: 104px var(--desktop-padding) 40px;
   }
 
   .topbar {
     border: 1px solid rgba(20, 53, 42, 0.1);
     border-radius: 16px;
-    width: min(var(--container-width), calc(100vw - (var(--desktop-padding) * 2)));
+    width: min(1200px, calc(100vw - (var(--desktop-padding) * 2)));
     left: 50%;
     transform: translateX(-50%);
     top: 10px;
@@ -789,6 +959,20 @@ tbody td::before {
 
   .dashboard {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .stat-card {
+    padding: 18px;
+  }
+
+  .stat-card .stat-label {
+    font-size: 0.74rem;
+    margin-bottom: 10px;
+  }
+
+  .stat-card strong {
+    font-size: 2rem;
   }
 
   .dashboard-actions .secondary-button {
@@ -835,6 +1019,7 @@ tbody td::before {
   table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
     min-width: 0;
   }
 
@@ -861,10 +1046,11 @@ tbody td::before {
     border: none;
     border-radius: 0;
     padding: 0;
+    height: auto;
   }
 
   thead th {
-    font-size: 0.74rem;
+    font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--muted);
@@ -872,12 +1058,20 @@ tbody td::before {
     padding: 12px 10px;
     text-align: left;
     border-bottom: 1px solid rgba(28, 66, 56, 0.09);
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    vertical-align: middle;
   }
 
   tbody td {
     padding: 12px 10px;
     border-bottom: 1px solid rgba(28, 66, 56, 0.08);
     vertical-align: middle;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    min-width: 0;
   }
 
   tbody td::before {
@@ -887,10 +1081,48 @@ tbody td::before {
   .actions {
     display: flex;
     flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .incident-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .table-button {
+    min-height: 40px;
+    font-size: 0.78rem;
+    padding: 8px 10px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .external-map-group {
+    border: none;
+    padding: 0;
+    background: transparent;
+  }
+
+  .external-map-label {
+    display: none;
   }
 
   .external-map-actions {
-    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    display: grid;
+    grid-template-columns: repeat(2, minmax(100px, 1fr));
+    gap: 6px;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    padding: 6px 10px;
+  }
+
+  .photo-thumb {
+    width: 64px;
+    height: 64px;
   }
 
   .inline-edit-actions {
