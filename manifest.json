@@ -1,9 +1,26 @@
 {
   "name": "East Bay Trail & Field Condition Tracker",
   "short_name": "TrailTracker",
+  "id": "./",
   "start_url": "./index.html",
   "display": "standalone",
+  "orientation": "portrait-primary",
+  "scope": "./",
   "background_color": "#f7f4ee",
   "theme_color": "#2e4a3b",
-  "description": "Track field conditions, trail hazards, and maintenance issues across East Bay parks."
+  "description": "Track field conditions, trail hazards, and maintenance issues across East Bay parks.",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='108' fill='%23173c34'/%3E%3Cpath d='M95 360h322l-66-94-58 64-48-74-80 104-36-50z' fill='%23dfeee4'/%3E%3Cpath d='M354 126c-40 9-70 46-70 88v20c0 15 12 27 27 27 62 0 112-50 112-112v-23c-22-5-45-5-69 0z' fill='%2374c69d'/%3E%3Ccircle cx='154' cy='156' r='28' fill='%23f3efe2'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='108' fill='%23173c34'/%3E%3Cpath d='M95 360h322l-66-94-58 64-48-74-80 104-36-50z' fill='%23dfeee4'/%3E%3Cpath d='M354 126c-40 9-70 46-70 88v20c0 15 12 27 27 27 62 0 112-50 112-112v-23c-22-5-45-5-69 0z' fill='%2374c69d'/%3E%3Ccircle cx='154' cy='156' r='28' fill='%23f3efe2'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }

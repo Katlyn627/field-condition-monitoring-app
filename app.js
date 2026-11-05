@@ -53,6 +53,7 @@ const photoInput = document.getElementById('photoInput');
 const photoPreviewContainer = document.getElementById('photoPreviewContainer');
 const resumeOutput = document.getElementById('resumeOutput');
 const copyResumeButton = document.getElementById('copyResumeButton');
+const clearFormButton = document.getElementById('clearFormButton');
 const exportGpxButton = document.getElementById('exportGpxButton');
 const gpsInput = document.getElementById('gps');
 const gpsLocationButton = document.getElementById('gpsLocationButton');
@@ -96,6 +97,7 @@ function attachEventListeners() {
   });
   photoInput.addEventListener('change', handlePhotoUpload);
   copyResumeButton.addEventListener('click', copyResumeBullets);
+  clearFormButton.addEventListener('click', clearIncidentForm);
   exportGpxButton.addEventListener('click', handleGpxExport);
   tableBody.addEventListener('click', handleTableAction);
   gpsInput.addEventListener('input', () => {
@@ -374,10 +376,7 @@ function handleFormSubmit(event) {
   renderDashboard();
   renderTable();
   renderResumeOutput();
-  form.reset();
-  resetPhotoSelection();
-  setDefaultDate();
-  handlePhotoPreview();
+  clearIncidentForm();
 }
 
 function getSelectedPhotoValue() {
@@ -441,6 +440,15 @@ function resetPhotoSelection() {
   photoUrlInput.value = '';
   updatePhotoStatusBadge(false);
   renderPhotoPreview();
+}
+
+function clearIncidentForm() {
+  form.reset();
+  gpsInput.value = '';
+  updateGpsStatusBadge(false);
+  resetPhotoSelection();
+  setDefaultDate();
+  handlePhotoPreview();
 }
 
 function handlePhotoPreview() {

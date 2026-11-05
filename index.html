@@ -6,8 +6,10 @@
     <meta name="theme-color" content="#2e4a3b" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="TrailTracker" />
     <title>East Bay Field & Trail Condition Tracker</title>
     <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='108' fill='%23173c34'/%3E%3Cpath d='M95 360h322l-66-94-58 64-48-74-80 104-36-50z' fill='%23dfeee4'/%3E%3Cpath d='M354 126c-40 9-70 46-70 88v20c0 15 12 27 27 27 62 0 112-50 112-112v-23c-22-5-45-5-69 0z' fill='%2374c69d'/%3E%3Ccircle cx='154' cy='156' r='28' fill='%23f3efe2'/%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -25,7 +27,13 @@
   <body>
     <div class="app-shell">
       <header class="topbar">
-        <div>
+        <div class="brand-group">
+          <svg class="brand-logo" viewBox="0 0 64 64" role="img" aria-label="TrailTracker logo">
+            <rect x="2" y="2" width="60" height="60" rx="14" fill="#173c34"></rect>
+            <path d="M12 45h40l-8-12-8 8-6-10-10 14-4-6z" fill="#dfeee4"></path>
+            <path d="M44 12c-7 2-12 8-12 15v3c0 2.8 2.2 5 5 5 10.5 0 19-8.5 19-19v-4c-4-1-8-1-12 0z" fill="#74c69d"></path>
+            <circle cx="19" cy="19" r="4" fill="#f3efe2"></circle>
+          </svg>
           <p class="eyebrow">East Bay Regional Park Stewardship</p>
           <h1>Field & Trail Condition Tracker</h1>
         </div>
@@ -129,7 +137,10 @@
 
             <div class="photo-preview" id="photoPreviewContainer" hidden></div>
 
-            <button type="submit" class="primary-button">Log Incident</button>
+            <div class="form-actions">
+              <button type="submit" class="primary-button">Log Incident</button>
+              <button id="clearFormButton" type="button" class="secondary-button">Clear Form</button>
+            </div>
           </form>
         </section>
 
