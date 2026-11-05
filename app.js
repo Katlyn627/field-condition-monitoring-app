@@ -87,9 +87,41 @@ const LOCAL_TRAILHEADS = [
   { name: 'Sunol Wilderness Visitor Center', latitude: 37.5147, longitude: -121.8309, agency: 'EBRPD' }
 ];
 
+const WEATHER_CODE_LABELS = {
+  0: 'Clear sky',
+  1: 'Mainly clear',
+  2: 'Partly cloudy',
+  3: 'Overcast',
+  45: 'Fog',
+  48: 'Depositing rime fog',
+  51: 'Light drizzle',
+  53: 'Moderate drizzle',
+  55: 'Dense drizzle',
+  56: 'Light freezing drizzle',
+  57: 'Dense freezing drizzle',
+  61: 'Slight rain',
+  63: 'Moderate rain',
+  65: 'Heavy rain',
+  66: 'Light freezing rain',
+  67: 'Heavy freezing rain',
+  71: 'Slight snowfall',
+  73: 'Moderate snowfall',
+  75: 'Heavy snowfall',
+  77: 'Snow grains',
+  80: 'Slight rain showers',
+  81: 'Moderate rain showers',
+  82: 'Violent rain showers',
+  85: 'Slight snow showers',
+  86: 'Heavy snow showers',
+  95: 'Thunderstorm',
+  96: 'Thunderstorm with slight hail',
+  99: 'Thunderstorm with heavy hail'
+};
+
 initialize();
 
 function initialize() {
+  ensureFieldAssistUi();
   setDefaultDate();
   attachEventListeners();
   updateConnectionStatus();
@@ -164,6 +196,62 @@ function attachEventListeners() {
   window.addEventListener('offline', updateConnectionStatus);
 }
 
+function ensureFieldAssistUi() {
+  if (!form) return;
+
+  const fieldGrid = form.querySelector('.field-grid');
+  if (!fieldGrid) return;
+
+  ensureNotesField(fieldGrid);
+  ensureElevationBadge();
+  ensureNearbyObservationsField(fieldGrid);
+}
+
+function ensureNotesField(fieldGrid) {
+  if (document.getElementById('incidentNotes')) return;
+
+  const notesLabel = document.createElement('label');
+  notesLabel.className = 'full-width';
+  notesLabel.innerHTML = `
+    <span>Incident Notes</span>
+    <textarea id="incidentNotes" name="notes" rows="4" placeholder="Notes from weather, terrain, species, and field observations."></textarea>
+  `;
+
+  const photoUrlLabel = photoUrlInput ? photoUrlInput.closest('label') : null;
+  if (photoUrlLabel) {
+    fieldGrid.insertBefore(notesLabel, photoUrlLabel);
+    return;
+  }
+
+  fieldGrid.appendChild(notesLabel);
+}
+
+function ensureElevationBadge() {
+  if (!gpsStatusBadge || document.getElementById('elevationBadge')) return;
+
+  const elevationBadge = document.createElement('span');
+  elevationBadge.id = 'elevationBadge';
+  elevationBadge.className = 'gps-flag';
+  elevationBadge.textContent = 'Elevation: --';
+  elevationBadge.hidden = true;
+  gpsStatusBadge.insertAdjacentElement('afterend', elevationBadge);
+}
+
+function ensureNearbyObservationsField(fieldGrid) {
+  if (document.getElementById('nearbyObservationsSelect')) return;
+
+  const observationsLabel = document.createElement('label');
+  observationsLabel.className = 'full-width';
+  observationsLabel.innerHTML = `
+    <span>Nearby species reports (iNaturalist, 2 km)</span>
+    <select id="nearbyObservationsSelect" name="nearbyObservation">
+      <option value="">No nearby observations loaded yet.</option>
+    </select>
+  `;
+
+  fieldGrid.appendChild(observationsLabel);
+}
+
 function handlePendingTrailMatchToggle() {
   const statusInput = document.getElementById('status');
   if (!statusInput || !pendingTrailMatchInput) return;
@@ -222,6 +310,8 @@ function handleGeolocationCapture() {
       if (trailheadName && locationInput) {
         locationInput.value = trailheadName;
       }
+
+      enrichLocationContext(latitude, longitude);
     },
     (error) => {
       gpsInput.value = 'Location unavailable';
@@ -234,6 +324,160 @@ function handleGeolocationCapture() {
       maximumAge: 0
     }
   );
+}
+
+function enrichLocationContext(latitude, longitude) {
+  if (!navigator.onLine) {
+    setNearbyObservationsPlaceholder('Offline mode: nearby observations unavailable.');
+    return;
+  }
+
+  fetchLocationWeather(latitude, longitude)
+    .then((weather) => {
+      if (!weather) return;
+      appendWeatherToNotes(weather);
+    })
+    .catch(() => null);
+
+  fetchUSGSElevation(latitude, longitude)
+    .then((elevationFeet) => {
+      if (!Number.isFinite(elevationFeet)) return;
+      setElevationBadge(elevationFeet);
+    })
+    .catch(() => null);
+
+  fetchNearbyObservations(latitude, longitude)
+    .then((observations) => {
+      renderNearbyObservations(observations);
+    })
+    .catch(() => {
+      setNearbyObservationsPlaceholder('Unable to load nearby observations right now.');
+    });
+}
+
+async function fetchLocationWeather(lat, lng) {
+  if (!navigator.onLine) return null;
+
+  const requestUrl = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lng)}&current_weather=true`;
+
+  return fetch(requestUrl)
+    .then((response) => {
+      if (!response.ok) throw new Error('Weather lookup failed');
+      return response.json();
+    })
+    .then((payload) => {
+      const weather = payload && payload.current_weather ? payload.current_weather : null;
+      if (!weather) return null;
+
+      const temperatureC = Number(weather.temperature);
+      const weatherCode = Number(weather.weathercode);
+      const condition = WEATHER_CODE_LABELS[weatherCode] || 'Unknown conditions';
+
+      if (!Number.isFinite(temperatureC)) return null;
+      return {
+        temperatureC,
+        condition
+      };
+    })
+    .catch(() => null);
+}
+
+async function fetchUSGSElevation(lat, lng) {
+  if (!navigator.onLine) return null;
+
+  const requestUrl = `https://epqs.nationalmap.gov/v1/json?x=${encodeURIComponent(lng)}&y=${encodeURIComponent(lat)}&wkid=4326&units=Feet`;
+
+  return fetch(requestUrl)
+    .then((response) => {
+      if (!response.ok) throw new Error('Elevation lookup failed');
+      return response.json();
+    })
+    .then((payload) => {
+      const elevation =
+        payload && payload.value != null ? payload.value :
+        payload && payload.elevation != null ? payload.elevation :
+        payload && payload.USGS_Elevation_Point_Query_Service &&
+          payload.USGS_Elevation_Point_Query_Service.Elevation_Query &&
+          payload.USGS_Elevation_Point_Query_Service.Elevation_Query.Elevation != null
+          ? payload.USGS_Elevation_Point_Query_Service.Elevation_Query.Elevation
+          : null;
+
+      const elevationFeet = Number(elevation);
+      return Number.isFinite(elevationFeet) ? elevationFeet : null;
+    })
+    .catch(() => null);
+}
+
+async function fetchNearbyObservations(lat, lng) {
+  if (!navigator.onLine) return [];
+
+  const requestUrl = `https://api.inaturalist.org/v1/observations?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}&radius=2&per_page=5`;
+
+  return fetch(requestUrl)
+    .then((response) => {
+      if (!response.ok) throw new Error('Nearby observations lookup failed');
+      return response.json();
+    })
+    .then((payload) => {
+      const results = Array.isArray(payload && payload.results) ? payload.results : [];
+
+      return results.map((entry) => {
+        const taxon = entry && entry.taxon ? entry.taxon : {};
+        const speciesName = taxon.preferred_common_name || taxon.name || 'Unidentified species';
+        const observedOn = entry && entry.observed_on ? entry.observed_on : '';
+        return {
+          speciesName: String(speciesName),
+          observedOn: String(observedOn)
+        };
+      });
+    })
+    .catch(() => []);
+}
+
+function appendWeatherToNotes(weather) {
+  const notesInput = document.getElementById('incidentNotes');
+  if (!notesInput) return;
+
+  const weatherSummary = `Weather: ${weather.temperatureC.toFixed(1)}°C, ${weather.condition}`;
+  const currentNotes = notesInput.value.trim();
+
+  if (currentNotes.includes(weatherSummary)) return;
+  notesInput.value = currentNotes ? `${currentNotes}\n${weatherSummary}` : weatherSummary;
+}
+
+function setElevationBadge(elevationFeet) {
+  const elevationBadge = document.getElementById('elevationBadge');
+  if (!elevationBadge) return;
+
+  elevationBadge.textContent = `Elevation: ${Math.round(elevationFeet).toLocaleString()} ft`;
+  elevationBadge.hidden = false;
+}
+
+function setNearbyObservationsPlaceholder(text) {
+  const observationsSelect = document.getElementById('nearbyObservationsSelect');
+  if (!observationsSelect) return;
+
+  observationsSelect.innerHTML = `<option value="">${escapeHtml(text)}</option>`;
+}
+
+function renderNearbyObservations(observations) {
+  const observationsSelect = document.getElementById('nearbyObservationsSelect');
+  if (!observationsSelect) return;
+
+  if (!Array.isArray(observations) || !observations.length) {
+    setNearbyObservationsPlaceholder('No nearby observations found.');
+    return;
+  }
+
+  const optionsMarkup = observations
+    .map((item) => {
+      const species = escapeHtml(item.speciesName || 'Unidentified species');
+      const observedLabel = item.observedOn ? ` (${escapeHtml(item.observedOn)})` : '';
+      return `<option value="${species}">${species}${observedLabel}</option>`;
+    })
+    .join('');
+
+  observationsSelect.innerHTML = `<option value="">Select a nearby species report</option>${optionsMarkup}`;
 }
 
 function findNearestTrailhead(userLat, userLng) {
@@ -911,7 +1155,8 @@ function handleFormSubmit(event) {
     status: pendingTrailMatch ? 'Pending Trail Match' : String(formData.get('status') || 'Flagged'),
     gps,
     date: String(formData.get('date') || new Date().toISOString().slice(0, 10)),
-    photo: getSelectedPhotoValue()
+    photo: getSelectedPhotoValue(),
+    notes: String(formData.get('notes') || '').trim()
   });
 
   if (!incident.location && !incident.gps) {
@@ -1000,9 +1245,18 @@ function clearIncidentForm() {
   if (gpsInput) gpsInput.value = '';
   if (pendingTrailMatchInput) pendingTrailMatchInput.checked = false;
   updateGpsStatusBadge(false);
+  clearElevationBadge();
+  setNearbyObservationsPlaceholder('No nearby observations loaded yet.');
   resetPhotoSelection();
   setDefaultDate();
   handlePhotoPreview();
+}
+
+function clearElevationBadge() {
+  const elevationBadge = document.getElementById('elevationBadge');
+  if (!elevationBadge) return;
+  elevationBadge.textContent = 'Elevation: --';
+  elevationBadge.hidden = true;
 }
 
 function handlePhotoPreview() {
