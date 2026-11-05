@@ -75,7 +75,9 @@ const offlineStatus = document.getElementById('offlineStatus');
 const state = {
   incidents: loadIncidents(),
   selectedPhotoDataUrl: '',
-  editingIncidentId: null
+  editingIncidentId: null,
+  isMobileLayout: window.innerWidth < 768,
+  layoutViewportWidth: window.innerWidth
 };
 
 const TRAILHEADS = [
@@ -97,6 +99,7 @@ function initialize() {
   renderDashboard();
   renderTable();
   renderResumeOutput();
+  syncLayoutForViewport(false);
 }
 
 function attachEventListeners() {
@@ -122,6 +125,7 @@ function attachEventListeners() {
   gpsLocationButton.addEventListener('click', handleGeolocationCapture);
   window.addEventListener('online', updateConnectionStatus);
   window.addEventListener('offline', updateConnectionStatus);
+  window.addEventListener('resize', handleWindowResize);
 }
 
 function handlePendingTrailMatchToggle() {
@@ -160,6 +164,35 @@ function updateGpsStatusBadge(hasCoordinates) {
 function updatePhotoStatusBadge(hasPhoto) {
   if (!photoStatusBadge) return;
   photoStatusBadge.hidden = !hasPhoto;
+}
+
+let resizeAnimationFrame = null;
+
+function handleWindowResize() {
+  if (resizeAnimationFrame) {
+    cancelAnimationFrame(resizeAnimationFrame);
+  }
+
+  resizeAnimationFrame = requestAnimationFrame(() => {
+    syncLayoutForViewport(true);
+    resizeAnimationFrame = null;
+  });
+}
+
+function syncLayoutForViewport(shouldRenderTable) {
+  const viewportWidth = window.innerWidth;
+  const isMobileLayout = viewportWidth < 768;
+  const layoutChanged = state.isMobileLayout !== isMobileLayout || state.layoutViewportWidth !== viewportWidth;
+
+  state.isMobileLayout = isMobileLayout;
+  state.layoutViewportWidth = viewportWidth;
+  document.body.setAttribute('data-layout-mode', isMobileLayout ? 'mobile' : 'desktop');
+
+  if (shouldRenderTable && layoutChanged) {
+    renderTable();
+  }
+
+  renderPhotoPreview();
 }
 
 function handleGeolocationCapture() {
