@@ -1,5 +1,5 @@
-const CACHE_NAME = 'trailtracker-v6';
-const ASSETS = ['./', './index.html?v=6', './styles.css?v=6', './app.js?v=6', './manifest.json?v=6'];
+const CACHE_NAME = 'trailtracker-v5';
+const ASSETS = ['./', './index.html?v=5', './styles.css?v=5', './app.js?v=5', './manifest.json?v=5'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
