@@ -1,4 +1,6 @@
 const STORAGE_KEY = 'east-bay-condition-tracker';
+const SEEDED_SAMPLE_VERSION = 2;
+const SAMPLE_VERSION_KEY = `${STORAGE_KEY}-sample-version`;
 
 const sampleLogs = [
   {
@@ -855,21 +857,45 @@ function toRadians(value) {
 }
 
 function loadIncidents() {
+  const normalizedSamples = sampleLogs.map(normalizeIncident);
+
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) {
-      return sampleLogs.map(normalizeIncident);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedSamples));
+      localStorage.setItem(SAMPLE_VERSION_KEY, String(SEEDED_SAMPLE_VERSION));
+      return normalizedSamples;
     }
 
     const parsed = JSON.parse(saved);
     if (!Array.isArray(parsed) || !parsed.length) {
-      return sampleLogs.map(normalizeIncident);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedSamples));
+      localStorage.setItem(SAMPLE_VERSION_KEY, String(SEEDED_SAMPLE_VERSION));
+      return normalizedSamples;
     }
 
-    return parsed.map(normalizeIncident);
+    const normalizedSaved = parsed.map(normalizeIncident);
+    const mergedIncidents = mergeSeedIncidents(normalizedSaved, normalizedSamples);
+    const storedSampleVersion = Number(localStorage.getItem(SAMPLE_VERSION_KEY) || 0);
+    const shouldPersistMerged = mergedIncidents.length !== normalizedSaved.length || storedSampleVersion < SEEDED_SAMPLE_VERSION;
+
+    if (shouldPersistMerged) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedIncidents));
+      localStorage.setItem(SAMPLE_VERSION_KEY, String(SEEDED_SAMPLE_VERSION));
+    }
+
+    return mergedIncidents;
   } catch (error) {
-    return sampleLogs.map(normalizeIncident);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedSamples));
+    localStorage.setItem(SAMPLE_VERSION_KEY, String(SEEDED_SAMPLE_VERSION));
+    return normalizedSamples;
   }
+}
+
+function mergeSeedIncidents(savedIncidents, seededIncidents) {
+  const savedIds = new Set(savedIncidents.map((incident) => incident.id));
+  const missingSeededIncidents = seededIncidents.filter((incident) => !savedIds.has(incident.id));
+  return savedIncidents.concat(missingSeededIncidents);
 }
 
 function normalizeIncident(rawIncident = {}) {
