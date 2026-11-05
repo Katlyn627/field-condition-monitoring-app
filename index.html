@@ -24,7 +24,7 @@
       }
     </script>
   </head>
-  <body>
+  <body data-page="home">
     <div class="app-shell">
       <header class="topbar">
         <div class="brand-group">
@@ -38,12 +38,41 @@
           <h1>Field & Trail Condition Tracker</h1>
         </div>
         <div class="header-actions">
+          <nav class="main-nav" aria-label="Main navigation">
+            <a href="index.html" class="nav-link active">Home</a>
+            <a href="log.html" class="nav-link">Log</a>
+            <a href="history.html" class="nav-link">History</a>
+          </nav>
           <div class="header-pill" id="offlineStatus" aria-live="polite">
             <span class="status-dot"></span>
             <span>Online</span>
           </div>
         </div>
       </header>
+
+      <section class="panel home-hero" aria-label="Operational overview">
+        <div class="hero-copy">
+          <p class="section-kicker">Field operations overview</p>
+          <h2>Track trail conditions before small issues become larger maintenance problems.</h2>
+          <p>
+            Capture hazards, invasive species, and infrastructure concerns in the field, then turn the results into clear reporting and action plans for park stewards.
+          </p>
+        </div>
+        <div class="hero-meta" aria-label="Quick summary metrics">
+          <div class="mini-stat">
+            <span class="mini-label">Priority watch</span>
+            <strong id="priorityWatch">0</strong>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-label">Needs review</span>
+            <strong id="needsReview">0</strong>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-label">Last logged</span>
+            <strong id="lastIncidentDate">—</strong>
+          </div>
+        </div>
+      </section>
 
       <section class="dashboard" aria-label="Incident dashboard">
         <article class="stat-card total">
@@ -63,150 +92,35 @@
           <strong id="volunteerHours">0.0</strong>
         </article>
       </section>
-      <div class="dashboard-actions">
-        <button id="exportGpxButton" class="secondary-button" type="button">Export GPX File</button>
-        <button id="importGpxButton" class="secondary-button" type="button">Import GPX / Trail Track</button>
-        <input id="importGpxInput" type="file" accept=".gpx,.xml,application/gpx+xml,text/xml" hidden>
-      </div>
 
-      <main class="main-grid">
-        <section class="panel form-panel">
-          <div class="section-heading">
-            <h2>Log Field Incident</h2>
-          </div>
-
-          <form id="incidentForm">
-            <div class="field-grid">
-              <label>
-                <span>Incident Type</span>
-                <select id="incidentType" name="type" required>
-                  <option value="Trail Hazard">Trail Hazard</option>
-                  <option value="Invasive Species">Invasive Species</option>
-                  <option value="Infrastructure/Trash">Infrastructure/Trash</option>
-                  <option value="Wildlife Impact">Wildlife Impact</option>
-                </select>
-              </label>
-
-              <label>
-                <span>Location / Trailhead</span>
-                <input id="location" name="location" type="text" placeholder="e.g., Sunset Trailhead, Tilden" />
-              </label>
-
-              <label>
-                <span>Priority Level</span>
-                <select id="priority" name="priority" required>
-                  <option value="Low">Low</option>
-                  <option value="Medium">Medium</option>
-                  <option value="High">High</option>
-                  <option value="Immediate Safety Hazard">Immediate Safety Hazard</option>
-                </select>
-              </label>
-
-              <label>
-                <span>Status</span>
-                <select id="status" name="status" required>
-                  <option value="Flagged">Flagged</option>
-                  <option value="Pending Trail Match">Pending Trail Match</option>
-                  <option value="Reported to District">Reported to District</option>
-                  <option value="Resolved">Resolved</option>
-                </select>
-              </label>
-
-              <label class="full-width check-row">
-                <input id="pendingTrailMatch" name="pendingTrailMatch" type="checkbox" />
-                <span>Offline / post-hike entry (mark as Pending Trail Match)</span>
-              </label>
-
-              <label>
-                <span>GPS Coordinates</span>
-                <div class="gps-row">
-                  <input id="gps" name="gps" type="text" placeholder="37.8741,-122.2861" />
-                  <button id="gpsLocationButton" type="button" class="secondary-button">Use Current Location</button>
-                </div>
-                <span id="gpsStatusBadge" class="gps-flag" hidden>GPS ready</span>
-              </label>
-
-              <label>
-                <span>Date</span>
-                <input id="incidentDate" name="date" type="date" required />
-              </label>
-
-              <label class="full-width">
-                <span>Photo URL</span>
-                <input id="photoUrl" name="photo" type="url" placeholder="https://example.com/image.jpg" />
-              </label>
-
-              <label class="full-width">
-                <span>Camera / Photo Upload</span>
-                <input type="file" accept="image/*" id="photoInput">
-                <span id="photoStatusBadge" class="photo-flag" hidden>Photo attached</span>
-              </label>
-            </div>
-
-            <div class="photo-preview" id="photoPreviewContainer" hidden></div>
-
-            <div class="form-actions">
-              <button type="submit" class="primary-button">Log Incident</button>
-              <button id="clearFormButton" type="button" class="secondary-button">Clear Form</button>
-            </div>
-          </form>
-        </section>
-
-        <section class="panel table-panel">
-          <div class="section-heading split-heading">
-            <h2>Incident Log</h2>
-            <div class="filters">
-              <label>
-                <span>Status</span>
-                <select id="statusFilter">
-                  <option value="all">All Statuses</option>
-                  <option value="Flagged">Flagged</option>
-                  <option value="Pending Trail Match">Pending Trail Match</option>
-                  <option value="Reported to District">Reported to District</option>
-                  <option value="Resolved">Resolved</option>
-                </select>
-              </label>
-
-              <label>
-                <span>Type</span>
-                <select id="typeFilter">
-                  <option value="all">All Types</option>
-                  <option value="Trail Hazard">Trail Hazard</option>
-                  <option value="Invasive Species">Invasive Species</option>
-                  <option value="Infrastructure/Trash">Infrastructure/Trash</option>
-                  <option value="Wildlife Impact">Wildlife Impact</option>
-                </select>
-              </label>
-            </div>
-          </div>
-
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Type</th>
-                  <th>Location</th>
-                  <th>Priority</th>
-                  <th>Status</th>
-                  <th>GPS</th>
-                  <th>Date</th>
-                  <th>Photo</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="incidentTableBody"></tbody>
-            </table>
-          </div>
-        </section>
-      </main>
-
-      <section class="panel export-panel">
-        <div class="section-heading split-heading">
-          <h2>Government Resume Data Exporter</h2>
-          <button id="copyResumeButton" class="secondary-button" type="button">Copy Resume Bullets</button>
+      <section class="panel home-cta-panel" aria-label="Primary actions">
+        <div class="section-heading">
+          <h2>Ready to log or review field activity?</h2>
         </div>
+        <div class="hero-actions">
+          <a href="log.html" class="primary-button">Log a new incident</a>
+          <a href="history.html" class="secondary-button">Open incident history</a>
+        </div>
+      </section>
 
-        <textarea id="resumeOutput" readonly aria-label="Resume-ready incident bullet list"></textarea>
+      <section class="panel insight-panel" aria-label="Field operations guidance">
+        <div class="section-heading">
+          <h2>Operational focus</h2>
+        </div>
+        <div class="insight-grid">
+          <article class="insight-card">
+            <h3>Safety first</h3>
+            <p>Review immediate hazards and maintenance concerns before routine patrols or volunteer follow-ups.</p>
+          </article>
+          <article class="insight-card">
+            <h3>Better match data</h3>
+            <p>Use GPS and trail matching so each issue lands in the right park, trailhead, and reporting workflow.</p>
+          </article>
+          <article class="insight-card">
+            <h3>Clear documentation</h3>
+            <p>Capture photos and incident notes that can be shared with district staff or used in a reporting summary.</p>
+          </article>
+        </div>
       </section>
     </div>
 

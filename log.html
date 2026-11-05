@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#2e4a3b" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="TrailTracker" />
+    <title>Log Incident | East Bay Field & Trail Condition Tracker</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="log">
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-group">
+          <svg class="brand-logo" viewBox="0 0 64 64" role="img" aria-label="TrailTracker logo">
+            <rect x="2" y="2" width="60" height="60" rx="14" fill="#173c34"></rect>
+            <path d="M12 45h40l-8-12-8 8-6-10-10 14-4-6z" fill="#dfeee4"></path>
+            <path d="M44 12c-7 2-12 8-12 15v3c0 2.8 2.2 5 5 5 10.5 0 19-8.5 19-19v-4c-4-1-8-1-12 0z" fill="#74c69d"></path>
+            <circle cx="19" cy="19" r="4" fill="#f3efe2"></circle>
+          </svg>
+          <p class="eyebrow">East Bay Regional Park Stewardship</p>
+          <h1>Field & Trail Condition Tracker</h1>
+        </div>
+        <nav class="main-nav" aria-label="Main navigation">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="log.html" class="nav-link active">Log</a>
+          <a href="history.html" class="nav-link">History</a>
+        </nav>
+      </header>
+
+      <main class="page-panel-stack">
+        <section class="panel page-header-panel">
+          <p class="section-kicker">New field report</p>
+          <h2>Log a park, trail, or maintenance issue.</h2>
+          <p>Capture the location, urgency, and supporting details while you are in the field.</p>
+        </section>
+
+        <section class="panel form-panel log-page-panel">
+          <div class="section-heading">
+            <h2>Log Field Incident</h2>
+          </div>
+
+          <form id="incidentForm">
+            <div class="field-grid">
+              <label>
+                <span>Incident Type</span>
+                <select id="incidentType" name="type" required>
+                  <option value="Trail Hazard">Trail Hazard</option>
+                  <option value="Invasive Species">Invasive Species</option>
+                  <option value="Infrastructure/Trash">Infrastructure/Trash</option>
+                  <option value="Wildlife Impact">Wildlife Impact</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Location / Trailhead</span>
+                <input id="location" name="location" type="text" placeholder="e.g., Sunset Trailhead, Tilden" />
+              </label>
+
+              <label>
+                <span>Priority Level</span>
+                <select id="priority" name="priority" required>
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Immediate Safety Hazard">Immediate Safety Hazard</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Status</span>
+                <select id="status" name="status" required>
+                  <option value="Flagged">Flagged</option>
+                  <option value="Pending Trail Match">Pending Trail Match</option>
+                  <option value="Reported to District">Reported to District</option>
+                  <option value="Resolved">Resolved</option>
+                </select>
+              </label>
+
+              <label class="full-width check-row">
+                <input id="pendingTrailMatch" name="pendingTrailMatch" type="checkbox" />
+                <span>Offline / post-hike entry (mark as Pending Trail Match)</span>
+              </label>
+
+              <label>
+                <span>GPS Coordinates</span>
+                <div class="gps-row">
+                  <input id="gps" name="gps" type="text" placeholder="37.8741,-122.2861" />
+                  <button id="gpsLocationButton" type="button" class="secondary-button">Use Current Location</button>
+                </div>
+                <span id="gpsStatusBadge" class="gps-flag" hidden>GPS ready</span>
+              </label>
+
+              <label>
+                <span>Date</span>
+                <input id="incidentDate" name="date" type="date" required />
+              </label>
+
+              <label class="full-width">
+                <span>Photo URL</span>
+                <input id="photoUrl" name="photo" type="url" placeholder="https://example.com/image.jpg" />
+              </label>
+
+              <label class="full-width">
+                <span>Camera / Photo Upload</span>
+                <input type="file" accept="image/*" id="photoInput" />
+                <span id="photoStatusBadge" class="photo-flag" hidden>Photo attached</span>
+              </label>
+            </div>
+
+            <div class="photo-preview" id="photoPreviewContainer" hidden></div>
+
+            <div class="form-actions">
+              <button type="submit" class="primary-button">Log Incident</button>
+              <button id="clearFormButton" type="button" class="secondary-button">Clear Form</button>
+            </div>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -71,6 +71,7 @@ const gpsLocationButton = document.getElementById('gpsLocationButton');
 const gpsStatusBadge = document.getElementById('gpsStatusBadge');
 const photoStatusBadge = document.getElementById('photoStatusBadge');
 const offlineStatus = document.getElementById('offlineStatus');
+const page = document.body.dataset.page || 'home';
 
 const state = {
   incidents: loadIncidents(),
@@ -92,40 +93,81 @@ function initialize() {
   setDefaultDate();
   attachEventListeners();
   updateConnectionStatus();
-  updateGpsStatusBadge(false);
-  updatePhotoStatusBadge(false);
+  updateGpsStatusBadge(Boolean(gpsInput && gpsInput.value.trim()));
+  updatePhotoStatusBadge(Boolean(state.selectedPhotoDataUrl || (photoUrlInput && photoUrlInput.value.trim())));
   renderDashboard();
   renderTable();
   renderResumeOutput();
 }
 
 function attachEventListeners() {
-  form.addEventListener('submit', handleFormSubmit);
-  statusFilter.addEventListener('change', renderTable);
-  typeFilter.addEventListener('change', renderTable);
-  pendingTrailMatchInput.addEventListener('change', handlePendingTrailMatchToggle);
-  photoUrlInput.addEventListener('input', () => {
-    state.selectedPhotoDataUrl = '';
-    handlePhotoPreview();
-  });
-  photoInput.addEventListener('change', handlePhotoUpload);
-  copyResumeButton.addEventListener('click', copyResumeBullets);
-  clearFormButton.addEventListener('click', clearIncidentForm);
-  exportGpxButton.addEventListener('click', handleGpxExport);
-  importGpxButton.addEventListener('click', () => importGpxInput.click());
-  importGpxInput.addEventListener('change', handleGpxImport);
-  tableBody.addEventListener('click', handleTableAction);
-  tableBody.addEventListener('submit', handleInlineEditSubmit);
-  gpsInput.addEventListener('input', () => {
-    updateGpsStatusBadge(Boolean(gpsInput.value.trim()) && gpsInput.value !== 'Location unavailable');
-  });
-  gpsLocationButton.addEventListener('click', handleGeolocationCapture);
+  if (form) {
+    form.addEventListener('submit', handleFormSubmit);
+  }
+
+  if (statusFilter) {
+    statusFilter.addEventListener('change', renderTable);
+  }
+
+  if (typeFilter) {
+    typeFilter.addEventListener('change', renderTable);
+  }
+
+  if (pendingTrailMatchInput) {
+    pendingTrailMatchInput.addEventListener('change', handlePendingTrailMatchToggle);
+  }
+
+  if (photoUrlInput) {
+    photoUrlInput.addEventListener('input', () => {
+      state.selectedPhotoDataUrl = '';
+      handlePhotoPreview();
+    });
+  }
+
+  if (photoInput) {
+    photoInput.addEventListener('change', handlePhotoUpload);
+  }
+
+  if (copyResumeButton) {
+    copyResumeButton.addEventListener('click', copyResumeBullets);
+  }
+
+  if (clearFormButton) {
+    clearFormButton.addEventListener('click', clearIncidentForm);
+  }
+
+  if (exportGpxButton) {
+    exportGpxButton.addEventListener('click', handleGpxExport);
+  }
+
+  if (importGpxButton && importGpxInput) {
+    importGpxButton.addEventListener('click', () => importGpxInput.click());
+    importGpxInput.addEventListener('change', handleGpxImport);
+  }
+
+  if (tableBody) {
+    tableBody.addEventListener('click', handleTableAction);
+    tableBody.addEventListener('submit', handleInlineEditSubmit);
+  }
+
+  if (gpsInput) {
+    gpsInput.addEventListener('input', () => {
+      updateGpsStatusBadge(Boolean(gpsInput.value.trim()) && gpsInput.value !== 'Location unavailable');
+    });
+  }
+
+  if (gpsLocationButton) {
+    gpsLocationButton.addEventListener('click', handleGeolocationCapture);
+  }
+
   window.addEventListener('online', updateConnectionStatus);
   window.addEventListener('offline', updateConnectionStatus);
 }
 
 function handlePendingTrailMatchToggle() {
   const statusInput = document.getElementById('status');
+  if (!statusInput || !pendingTrailMatchInput) return;
+
   if (pendingTrailMatchInput.checked) {
     statusInput.value = 'Pending Trail Match';
     return;
@@ -138,6 +180,7 @@ function handlePendingTrailMatchToggle() {
 
 function setDefaultDate() {
   const dateInput = document.getElementById('incidentDate');
+  if (!dateInput) return;
   dateInput.value = new Date().toISOString().slice(0, 10);
 }
 
@@ -281,11 +324,30 @@ function renderDashboard() {
     if (item.status !== 'Resolved') return sum;
     return sum + estimateHours(item);
   }, 0);
+  const priorityWatch = state.incidents.filter((item) => {
+    return item.priority === 'High' || item.priority === 'Immediate Safety Hazard';
+  }).length;
+  const needsReview = state.incidents.filter((item) => item.status !== 'Resolved').length;
+  const latestDate = state.incidents
+    .map((item) => item.date)
+    .filter(Boolean)
+    .sort((a, b) => new Date(b) - new Date(a))[0];
 
-  document.getElementById('totalIncidents').textContent = total;
-  document.getElementById('pendingWork').textContent = pending;
-  document.getElementById('resolvedItems').textContent = resolved;
-  document.getElementById('volunteerHours').textContent = volunteerHours.toFixed(1);
+  const totalIncidentsElement = document.getElementById('totalIncidents');
+  const pendingWorkElement = document.getElementById('pendingWork');
+  const resolvedItemsElement = document.getElementById('resolvedItems');
+  const volunteerHoursElement = document.getElementById('volunteerHours');
+  const priorityWatchElement = document.getElementById('priorityWatch');
+  const needsReviewElement = document.getElementById('needsReview');
+  const lastIncidentDateElement = document.getElementById('lastIncidentDate');
+
+  if (totalIncidentsElement) totalIncidentsElement.textContent = total;
+  if (pendingWorkElement) pendingWorkElement.textContent = pending;
+  if (resolvedItemsElement) resolvedItemsElement.textContent = resolved;
+  if (volunteerHoursElement) volunteerHoursElement.textContent = volunteerHours.toFixed(1);
+  if (priorityWatchElement) priorityWatchElement.textContent = priorityWatch;
+  if (needsReviewElement) needsReviewElement.textContent = needsReview;
+  if (lastIncidentDateElement) lastIncidentDateElement.textContent = latestDate ? formatDate(latestDate) : '—';
 }
 
 function estimateHours(item) {
@@ -307,8 +369,10 @@ function estimateHours(item) {
 }
 
 function renderTable() {
-  const statusValue = statusFilter.value;
-  const typeValue = typeFilter.value;
+  if (!tableBody) return;
+
+  const statusValue = statusFilter ? statusFilter.value : 'all';
+  const typeValue = typeFilter ? typeFilter.value : 'all';
 
   const filtered = state.incidents.filter((incident) => {
     const statusMatch = statusValue === 'all' || incident.status === statusValue;
@@ -659,7 +723,7 @@ function getSelectedPhotoValue() {
     return state.selectedPhotoDataUrl;
   }
 
-  return sanitizeImageUrl(photoUrlInput.value);
+  return photoUrlInput ? sanitizeImageUrl(photoUrlInput.value) : '';
 }
 
 function sanitizeImageUrl(url) {
@@ -711,16 +775,16 @@ function handlePhotoUpload(event) {
 
 function resetPhotoSelection() {
   state.selectedPhotoDataUrl = '';
-  photoInput.value = '';
-  photoUrlInput.value = '';
+  if (photoInput) photoInput.value = '';
+  if (photoUrlInput) photoUrlInput.value = '';
   updatePhotoStatusBadge(false);
   renderPhotoPreview();
 }
 
 function clearIncidentForm() {
-  form.reset();
-  gpsInput.value = '';
-  pendingTrailMatchInput.checked = false;
+  if (form) form.reset();
+  if (gpsInput) gpsInput.value = '';
+  if (pendingTrailMatchInput) pendingTrailMatchInput.checked = false;
   updateGpsStatusBadge(false);
   resetPhotoSelection();
   setDefaultDate();
@@ -733,7 +797,7 @@ function handlePhotoPreview() {
     return;
   }
 
-  const url = sanitizeImageUrl(photoUrlInput.value);
+  const url = photoUrlInput ? sanitizeImageUrl(photoUrlInput.value) : '';
   if (!url) {
     renderPhotoPreview();
     return;
@@ -742,7 +806,9 @@ function handlePhotoPreview() {
   renderPhotoPreview(url);
 }
 
-function renderPhotoPreview(imageSource = state.selectedPhotoDataUrl || sanitizeImageUrl(photoUrlInput.value)) {
+function renderPhotoPreview(imageSource = state.selectedPhotoDataUrl || (photoUrlInput ? sanitizeImageUrl(photoUrlInput.value) : '')) {
+  if (!photoPreviewContainer) return;
+
   if (!imageSource) {
     photoPreviewContainer.hidden = true;
     photoPreviewContainer.innerHTML = '';
@@ -756,6 +822,8 @@ function renderPhotoPreview(imageSource = state.selectedPhotoDataUrl || sanitize
 }
 
 function renderResumeOutput() {
+  if (!resumeOutput) return;
+
   const totalIncidents = state.incidents.length;
   const pending = state.incidents.filter((item) => item.status !== 'Resolved').length;
   const resolved = state.incidents.filter((item) => item.status === 'Resolved').length;

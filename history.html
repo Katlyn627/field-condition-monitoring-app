@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#2e4a3b" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="TrailTracker" />
+    <title>History | East Bay Field & Trail Condition Tracker</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="history">
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-group">
+          <svg class="brand-logo" viewBox="0 0 64 64" role="img" aria-label="TrailTracker logo">
+            <rect x="2" y="2" width="60" height="60" rx="14" fill="#173c34"></rect>
+            <path d="M12 45h40l-8-12-8 8-6-10-10 14-4-6z" fill="#dfeee4"></path>
+            <path d="M44 12c-7 2-12 8-12 15v3c0 2.8 2.2 5 5 5 10.5 0 19-8.5 19-19v-4c-4-1-8-1-12 0z" fill="#74c69d"></path>
+            <circle cx="19" cy="19" r="4" fill="#f3efe2"></circle>
+          </svg>
+          <p class="eyebrow">East Bay Regional Park Stewardship</p>
+          <h1>Field & Trail Condition Tracker</h1>
+        </div>
+        <nav class="main-nav" aria-label="Main navigation">
+          <a href="index.html" class="nav-link">Home</a>
+          <a href="log.html" class="nav-link">Log</a>
+          <a href="history.html" class="nav-link active">History</a>
+        </nav>
+      </header>
+
+      <main class="page-panel-stack">
+        <section class="panel page-header-panel">
+          <p class="section-kicker">Incident history</p>
+          <h2>Review ongoing issues and recent field activity.</h2>
+          <p>Filter incidents, check follow-up status, and export a concise summary for district communication.</p>
+        </section>
+
+        <section class="panel table-panel history-page-panel">
+          <div class="section-heading split-heading">
+            <h2>Incident Log</h2>
+            <div class="filters">
+              <label>
+                <span>Status</span>
+                <select id="statusFilter">
+                  <option value="all">All Statuses</option>
+                  <option value="Flagged">Flagged</option>
+                  <option value="Pending Trail Match">Pending Trail Match</option>
+                  <option value="Reported to District">Reported to District</option>
+                  <option value="Resolved">Resolved</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Type</span>
+                <select id="typeFilter">
+                  <option value="all">All Types</option>
+                  <option value="Trail Hazard">Trail Hazard</option>
+                  <option value="Invasive Species">Invasive Species</option>
+                  <option value="Infrastructure/Trash">Infrastructure/Trash</option>
+                  <option value="Wildlife Impact">Wildlife Impact</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Location</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>GPS</th>
+                  <th>Date</th>
+                  <th>Photo</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="incidentTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel export-panel">
+          <div class="section-heading split-heading">
+            <h2>Government Resume Data Exporter</h2>
+            <button id="copyResumeButton" class="secondary-button" type="button">Copy Resume Bullets</button>
+          </div>
+
+          <textarea id="resumeOutput" readonly aria-label="Resume-ready incident bullet list"></textarea>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
