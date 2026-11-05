@@ -79,12 +79,12 @@ const state = {
   editingIncidentId: null
 };
 
-const TRAILHEADS = [
-  { name: 'Sunset Trailhead, Tilden Regional Park', latitude: 37.8965, longitude: -122.2486 },
-  { name: 'Morrison Canyon, Mt. Diablo State Park', latitude: 37.8819, longitude: -121.9188 },
-  { name: 'Redwood Ridge Trailhead, Redwood Regional Park', latitude: 37.8222, longitude: -122.1887 },
-  { name: 'Del Valle Regional Park', latitude: 37.6036, longitude: -121.7608 },
-  { name: 'Sunol Wilderness, Sunol', latitude: 37.4957, longitude: -121.8812 }
+const LOCAL_TRAILHEADS = [
+  { name: 'Sunset Trailhead, Tilden Regional Park', latitude: 37.8966, longitude: -122.2484, agency: 'EBRPD' },
+  { name: 'North Ridge Trailhead, Redwood Regional Park', latitude: 37.8222, longitude: -122.1887, agency: 'EBRPD' },
+  { name: 'Morrison Canyon, Mt. Diablo State Park', latitude: 37.8819, longitude: -121.9188, agency: 'CA State Parks' },
+  { name: 'Del Valle South Trailhead, Del Valle Regional Park', latitude: 37.6042, longitude: -121.7001, agency: 'EBRPD' },
+  { name: 'Sunol Wilderness Visitor Center', latitude: 37.5147, longitude: -121.8309, agency: 'EBRPD' }
 ];
 
 initialize();
@@ -215,11 +215,11 @@ function handleGeolocationCapture() {
     (position) => {
       const latitude = Number(position.coords.latitude);
       const longitude = Number(position.coords.longitude);
-      gpsInput.value = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+      gpsInput.value = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
       updateGpsStatusBadge(true);
 
-      const trailheadName = findNearbyTrailhead(latitude, longitude);
-      if (trailheadName && !locationInput.value.trim()) {
+      const trailheadName = findNearestTrailhead(latitude, longitude);
+      if (trailheadName && locationInput) {
         locationInput.value = trailheadName;
       }
     },
@@ -236,19 +236,19 @@ function handleGeolocationCapture() {
   );
 }
 
-function findNearbyTrailhead(latitude, longitude) {
+function findNearestTrailhead(userLat, userLng) {
   let closestTrailhead = null;
   let shortestDistance = Infinity;
 
-  TRAILHEADS.forEach((trailhead) => {
-    const distanceKm = calculateDistanceKm(latitude, longitude, trailhead.latitude, trailhead.longitude);
+  LOCAL_TRAILHEADS.forEach((trailhead) => {
+    const distanceKm = calculateDistanceKm(userLat, userLng, trailhead.latitude, trailhead.longitude);
     if (distanceKm < shortestDistance) {
       shortestDistance = distanceKm;
       closestTrailhead = trailhead;
     }
   });
 
-  return shortestDistance <= 0.5 ? closestTrailhead.name : null;
+  return shortestDistance <= 3 ? closestTrailhead.name : null;
 }
 
 function calculateDistanceKm(latitude1, longitude1, latitude2, longitude2) {
