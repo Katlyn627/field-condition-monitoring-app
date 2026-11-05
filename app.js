@@ -403,9 +403,16 @@ function handlePhotoUpload(event) {
     return;
   }
 
+  if (!file.type.startsWith('image/')) {
+    resetPhotoSelection();
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = () => {
-    state.selectedPhotoDataUrl = typeof reader.result === 'string' ? reader.result : '';
+    const dataUrl = typeof reader.result === 'string' ? reader.result : '';
+    state.selectedPhotoDataUrl = dataUrl.startsWith('data:image/') ? dataUrl : '';
+    photoUrlInput.value = '';
     updatePhotoStatusBadge(Boolean(state.selectedPhotoDataUrl));
     renderPhotoPreview();
   };
