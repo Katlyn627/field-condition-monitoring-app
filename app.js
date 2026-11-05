@@ -1078,3 +1078,45 @@ function escapeXml(value) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
 }
+
+/* Mobile Tab Navigation */
+function initializeMobileTabs() {
+  const tabButtons = document.querySelectorAll('[role="tab"]');
+  const tabPanels = document.querySelectorAll('[role="tabpanel"]');
+
+  if (tabButtons.length === 0) return;
+
+  tabButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const targetTabId = button.getAttribute('data-tab');
+      
+      // Deactivate all tabs and hide all panels
+      tabButtons.forEach((btn) => btn.setAttribute('aria-selected', 'false'));
+      tabPanels.forEach((panel) => panel.setAttribute('hidden', ''));
+
+      // Activate clicked tab and show corresponding panel
+      button.setAttribute('aria-selected', 'true');
+      const targetPanel = document.getElementById(`${targetTabId}-panel`);
+      if (targetPanel) {
+        targetPanel.removeAttribute('hidden');
+      }
+    });
+  });
+
+  // Set dashboard tab as active by default
+  const dashboardTab = document.querySelector('[data-tab="dashboard"]');
+  if (dashboardTab) {
+    dashboardTab.setAttribute('aria-selected', 'true');
+    const dashboardPanel = document.getElementById('dashboard-panel');
+    if (dashboardPanel) {
+      dashboardPanel.removeAttribute('hidden');
+    }
+  }
+}
+
+// Initialize tabs when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeMobileTabs);
+} else {
+  initializeMobileTabs();
+}
