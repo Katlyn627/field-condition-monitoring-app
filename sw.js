@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trailtracker-v5';
+const CACHE_NAME = 'trailtracker-v4';
 const ASSETS = ['./', './index.html', './styles.css', './app.js', './manifest.json'];
 
 self.addEventListener('install', (event) => {
