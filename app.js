@@ -348,6 +348,220 @@ function renderDashboard() {
   if (priorityWatchElement) priorityWatchElement.textContent = priorityWatch;
   if (needsReviewElement) needsReviewElement.textContent = needsReview;
   if (lastIncidentDateElement) lastIncidentDateElement.textContent = latestDate ? formatDate(latestDate) : '—';
+
+  renderHeroData({
+    total,
+    pending,
+    resolved,
+    priorityWatch,
+    latestDate
+  });
+  renderHomeCharts(total);
+}
+
+function renderHeroData(metrics) {
+  const heroStatCards = document.getElementById('heroStatCards');
+  const heroMapCards = document.getElementById('heroMapCards');
+  const heroPhotoCards = document.getElementById('heroPhotoCards');
+
+  if (heroStatCards) {
+    heroStatCards.innerHTML = [
+      createHeroStatItem('Logged', metrics.total),
+      createHeroStatItem('Open', metrics.pending),
+      createHeroStatItem('Resolved', metrics.resolved),
+      createHeroStatItem('High risk', metrics.priorityWatch)
+    ].join('');
+  }
+
+  if (heroMapCards) {
+    const mapReadyIncidents = state.incidents
+      .filter((incident) => parseGpsCoordinates(incident.gps))
+      .slice(0, 3);
+
+    if (!mapReadyIncidents.length) {
+      heroMapCards.innerHTML = '<p class="empty-state">No GPS points yet. Add coordinates in the log page.</p>';
+    } else {
+      heroMapCards.innerHTML = mapReadyIncidents
+        .map((incident) => {
+          const coordinates = parseGpsCoordinates(incident.gps);
+          const mapLink = getGoogleMapsDeepLink(coordinates.latitude, coordinates.longitude);
+          const safeLocation = escapeHtml(incident.location || 'Unlabeled location');
+          const safeStatus = escapeHtml(incident.status || 'Flagged');
+          const safeDate = escapeHtml(formatDate(incident.date));
+
+          return `
+            <a class="hero-map-item" href="${escapeAttribute(mapLink)}" target="_blank" rel="noopener">
+              <strong>${safeLocation}</strong>
+              <span>${safeStatus} • ${safeDate}</span>
+            </a>
+          `;
+        })
+        .join('');
+    }
+  }
+
+  if (heroPhotoCards) {
+    const photoIncidents = state.incidents
+      .filter((incident) => Boolean(sanitizeImageUrl(incident.photo)))
+      .slice(0, 3);
+
+    if (!photoIncidents.length) {
+      heroPhotoCards.innerHTML = '<p class="empty-state">No photos yet. Add image URLs or uploads in new logs.</p>';
+    } else {
+      heroPhotoCards.innerHTML = photoIncidents
+        .map((incident) => {
+          const safePhoto = escapeAttribute(sanitizeImageUrl(incident.photo));
+          const safeAlt = escapeAttribute(`${incident.location || incident.type} photo`);
+          const safeLocation = escapeHtml(incident.location || 'Unlabeled location');
+          const safeDate = escapeHtml(formatDate(incident.date));
+
+          return `
+            <article class="hero-photo-item">
+              <img src="${safePhoto}" alt="${safeAlt}" />
+              <div class="hero-photo-meta">
+                <strong>${safeLocation}</strong>
+                <span>${safeDate}</span>
+              </div>
+            </article>
+          `;
+        })
+        .join('');
+    }
+  }
+}
+
+function createHeroStatItem(label, value) {
+  return `
+    <article class="hero-stat-item">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(String(value))}</strong>
+    </article>
+  `;
+}
+
+function renderHomeCharts(totalIncidents) {
+  const statusChartRows = document.getElementById('statusChartRows');
+  const typeChartRows = document.getElementById('typeChartRows');
+  const trendChartBars = document.getElementById('trendChartBars');
+  const total = Math.max(0, Number(totalIncidents) || 0);
+
+  if (statusChartRows) {
+    const statusOrder = ['Flagged', 'Pending Trail Match', 'Reported to District', 'Resolved'];
+    const statusRows = statusOrder.map((status) => {
+      const count = state.incidents.filter((incident) => incident.status === status).length;
+      const widthPercent = total ? Math.max(0, Math.round((count / total) * 100)) : 0;
+
+      return `
+        <div class="chart-row">
+          <span class="chart-label">${escapeHtml(status)}</span>
+          <span class="chart-value">${count}</span>
+          <div class="chart-track" role="img" aria-label="${escapeAttribute(status)} incidents: ${count}">
+            <span class="chart-fill status" style="width: ${widthPercent}%"></span>
+          </div>
+        </div>
+      `;
+    });
+
+    statusChartRows.innerHTML = statusRows.join('');
+  }
+
+  if (typeChartRows) {
+    const typeOrder = ['Trail Hazard', 'Invasive Species', 'Infrastructure/Trash', 'Wildlife Impact'];
+    const typeRows = typeOrder.map((type) => {
+      const count = state.incidents.filter((incident) => incident.type === type).length;
+      const widthPercent = total ? Math.max(0, Math.round((count / total) * 100)) : 0;
+
+      return `
+        <div class="chart-row">
+          <span class="chart-label">${escapeHtml(type)}</span>
+          <span class="chart-value">${count}</span>
+          <div class="chart-track" role="img" aria-label="${escapeAttribute(type)} incidents: ${count}">
+            <span class="chart-fill type" style="width: ${widthPercent}%"></span>
+          </div>
+        </div>
+      `;
+    });
+
+    typeChartRows.innerHTML = typeRows.join('');
+  }
+
+  if (trendChartBars) {
+    const trendBins = buildRecentTrendBins(state.incidents, 7);
+    const maxCount = trendBins.reduce((max, bin) => Math.max(max, bin.count), 0) || 1;
+
+    trendChartBars.innerHTML = trendBins
+      .map((bin) => {
+        const heightPercent = bin.count > 0 ? Math.max(8, Math.round((bin.count / maxCount) * 100)) : 0;
+        const safeLabel = escapeHtml(bin.label);
+        const safeAriaLabel = escapeAttribute(`${bin.label}: ${bin.count} incidents`);
+
+        return `
+          <div class="trend-col" role="img" aria-label="${safeAriaLabel}">
+            <div class="trend-bar">
+              <span class="trend-fill" style="height: ${heightPercent}%"></span>
+            </div>
+            <span class="trend-count">${bin.count}</span>
+            <span class="trend-label">${safeLabel}</span>
+          </div>
+        `;
+      })
+      .join('');
+  }
+}
+
+function buildRecentTrendBins(incidents, days) {
+  const validDays = Math.max(1, Number(days) || 7);
+  const timestampedDates = incidents
+    .map((incident) => parseIsoDate(incident.date))
+    .filter((date) => date instanceof Date && !Number.isNaN(date.getTime()));
+  const latestDate = timestampedDates.length ? new Date(Math.max(...timestampedDates.map((date) => date.getTime()))) : new Date();
+
+  latestDate.setHours(0, 0, 0, 0);
+
+  const countByKey = incidents.reduce((map, incident) => {
+    const parsedDate = parseIsoDate(incident.date);
+    if (!(parsedDate instanceof Date) || Number.isNaN(parsedDate.getTime())) {
+      return map;
+    }
+
+    const key = toLocalDateKey(parsedDate);
+    map[key] = (map[key] || 0) + 1;
+    return map;
+  }, {});
+
+  return Array.from({ length: validDays }, (_, index) => {
+    const offset = validDays - 1 - index;
+    const date = new Date(latestDate);
+    date.setDate(date.getDate() - offset);
+
+    const dateKey = toLocalDateKey(date);
+    const label = `${date.getMonth() + 1}/${date.getDate()}`;
+
+    return {
+      label,
+      count: countByKey[dateKey] || 0
+    };
+  });
+}
+
+function parseIsoDate(value) {
+  if (typeof value !== 'string' || !value.trim()) {
+    return null;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function toLocalDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function estimateHours(item) {

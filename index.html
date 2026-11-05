@@ -54,9 +54,23 @@
         <div class="hero-copy">
           <p class="section-kicker">Field operations overview</p>
           <h2>Track trail conditions before small issues become larger maintenance problems.</h2>
-          <p>
+          <p class="hero-description">
             Capture hazards, invasive species, and infrastructure concerns in the field, then turn the results into clear reporting and action plans for park stewards.
           </p>
+          <div class="hero-data-grid">
+            <article class="hero-data-card">
+              <h3>Snapshot</h3>
+              <div id="heroStatCards" class="hero-stat-grid"></div>
+            </article>
+            <article class="hero-data-card">
+              <h3>Recent map points</h3>
+              <div id="heroMapCards" class="hero-map-list"></div>
+            </article>
+            <article class="hero-data-card">
+              <h3>Recent photos</h3>
+              <div id="heroPhotoCards" class="hero-photo-list"></div>
+            </article>
+          </div>
         </div>
         <div class="hero-meta" aria-label="Quick summary metrics">
           <div class="mini-stat">
@@ -91,6 +105,27 @@
           <span class="stat-label">Volunteer Hours</span>
           <strong id="volunteerHours">0.0</strong>
         </article>
+      </section>
+
+      <section class="panel home-analytics" aria-label="Charts and operational trends">
+        <div class="section-heading split-heading">
+          <h2>Operations analytics</h2>
+          <p class="analytics-subtitle">Live status, type mix, and weekly logging activity.</p>
+        </div>
+        <div class="analytics-grid">
+          <article class="analytics-card">
+            <h3>Status distribution</h3>
+            <div id="statusChartRows" class="chart-rows"></div>
+          </article>
+          <article class="analytics-card">
+            <h3>Incident type mix</h3>
+            <div id="typeChartRows" class="chart-rows"></div>
+          </article>
+          <article class="analytics-card trend-card">
+            <h3>7-day logging trend</h3>
+            <div id="trendChartBars" class="trend-chart" aria-label="Incidents logged per day over the last seven days"></div>
+          </article>
+        </div>
       </section>
 
       <section class="panel home-cta-panel" aria-label="Primary actions">
