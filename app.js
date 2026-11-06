@@ -406,6 +406,7 @@ const photoInput = document.getElementById('photoInput');
 const photoPreviewContainer = document.getElementById('photoPreviewContainer');
 const resumeOutput = document.getElementById('resumeOutput');
 const copyResumeButton = document.getElementById('copyResumeButton');
+const resetSeededDataButton = document.getElementById('resetSeededDataButton');
 const clearFormButton = document.getElementById('clearFormButton');
 const exportGpxButton = document.getElementById('exportGpxButton');
 const importGpxButton = document.getElementById('importGpxButton');
@@ -506,6 +507,10 @@ function attachEventListeners() {
 
   if (copyResumeButton) {
     copyResumeButton.addEventListener('click', copyResumeBullets);
+  }
+
+  if (resetSeededDataButton) {
+    resetSeededDataButton.addEventListener('click', resetToLatestSeededData);
   }
 
   if (clearFormButton) {
@@ -1625,6 +1630,25 @@ function clearElevationBadge() {
   if (!elevationBadge) return;
   elevationBadge.textContent = 'Elevation: --';
   elevationBadge.hidden = true;
+}
+
+function resetToLatestSeededData() {
+  const shouldReset = window.confirm('Replace current saved incidents with the latest seeded dataset? This cannot be undone.');
+  if (!shouldReset) return;
+
+  state.incidents = sampleLogs.map(normalizeIncident);
+  state.editingIncidentId = null;
+  localStorage.setItem(SAMPLE_VERSION_KEY, String(SEEDED_SAMPLE_VERSION));
+  persistIncidents();
+
+  if (statusFilter) statusFilter.value = 'all';
+  if (typeFilter) typeFilter.value = 'all';
+
+  renderDashboard();
+  renderTable();
+  renderResumeOutput();
+
+  window.alert(`Loaded ${state.incidents.length} seeded incident entries.`);
 }
 
 function handlePhotoPreview() {
