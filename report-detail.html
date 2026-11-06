@@ -32,7 +32,7 @@
           <p class="section-kicker">Incident report</p>
           <h2 id="detailIncidentTitle">Incident Report</h2>
           <div class="report-header-grid">
-            <p id="detailIncidentId">Incident ID: —</p>
+            <p id="detailIncidentId">Report ID: —</p>
             <p><span id="detailPriorityBadge" class="badge medium">Medium</span></p>
             <p><span id="detailCurrentStatusBadge" class="badge flagged">Open</span></p>
           </div>
@@ -44,9 +44,13 @@
         <div id="reportDetailContent" class="page-panel-stack" hidden>
           <section class="panel">
             <div class="section-heading">
-              <h2>Location &amp; Environmental Data</h2>
+              <h2>Location &amp; GIS</h2>
             </div>
             <div class="report-detail-grid">
+              <article class="insight-card">
+                <h3>Park Unit Name</h3>
+                <p id="detailParkUnit">—</p>
+              </article>
               <article class="insight-card">
                 <h3>Nearest Trailhead</h3>
                 <p id="detailTrailhead">—</p>
@@ -60,7 +64,7 @@
                 <p id="detailElevation">—</p>
               </article>
               <article class="insight-card">
-                <h3>Weather at time of log</h3>
+                <h3>Weather</h3>
                 <p id="detailWeather">—</p>
               </article>
             </div>
@@ -68,16 +72,22 @@
 
           <section class="panel">
             <div class="section-heading">
-              <h2>Full Photo Gallery</h2>
+              <h2>Field Observations</h2>
             </div>
-            <div id="detailPhotoContainer" class="report-photo-gallery"></div>
-          </section>
-
-          <section class="panel">
-            <div class="section-heading">
-              <h2>Incident Details</h2>
+            <div class="report-observation-grid">
+              <article class="insight-card">
+                <h3>Category</h3>
+                <p id="detailIncidentCategory">—</p>
+              </article>
+              <article class="insight-card">
+                <h3>Full Notes</h3>
+                <div id="detailNotes" class="detail-notes" aria-label="Full notes and field observations"></div>
+              </article>
+              <article class="insight-card">
+                <h3>Photo Gallery</h3>
+                <div id="detailPhotoContainer" class="report-photo-gallery"></div>
+              </article>
             </div>
-            <div id="detailNotes" class="detail-notes" aria-label="Full notes and field observations"></div>
           </section>
 
           <section class="panel">
@@ -94,7 +104,7 @@
 
           <section class="panel">
             <div class="section-heading">
-              <h2>Post-Hike Action Log</h2>
+              <h2>Work Order &amp; Resolution Notes</h2>
             </div>
             <form id="actionLogForm" class="report-action-form">
               <label>
@@ -102,15 +112,16 @@
                 <select id="actionLogStatusSelect">
                   <option value="Open">Open</option>
                   <option value="Pending Trail Match">Pending Trail Match</option>
+                  <option value="In Progress">In Progress</option>
                   <option value="Resolved">Resolved</option>
                 </select>
               </label>
               <label>
-                <span>Work Order Notes</span>
+                <span>Work Order / Crew Notes</span>
                 <textarea
                   id="followUpActionsInput"
                   rows="6"
-                  placeholder="Append follow-up actions, work order notes, or district updates."
+                  placeholder="Crew cleared tree debris on 11/06. District scheduled repair for culvert crossing."
                 ></textarea>
               </label>
               <div class="hero-actions">
@@ -125,7 +136,7 @@
 
     <div id="imageModal" class="image-modal detail-image-modal" aria-modal="true" role="dialog" aria-label="Expanded report image preview">
       <button id="closeModalBtn" type="button" class="detail-modal-close" aria-label="Close image preview">×</button>
-      <img id="detailImageModalImg" class="report-detail-photo" alt="Expanded report image preview" />
+      <img id="detailImageModalImg" class="report-detail-photo report-photo-preview" alt="Expanded report image preview" />
     </div>
 
     <script src="app.js"></script>

@@ -1090,8 +1090,9 @@ function normalizeIncident(rawIncident = {}) {
     createdAt: normalizeIncidentCreatedAt(rawIncident.createdAt, rawIncident.date)
   };
 
-  if (normalized.status !== 'Flagged' && normalized.status !== 'Pending Trail Match' && normalized.status !== 'Reported to District' && normalized.status !== 'Resolved') {
-    normalized.status = 'Flagged';
+  const validStatuses = ['Flagged', 'Open', 'Pending Trail Match', 'In Progress', 'Reported to District', 'Resolved'];
+  if (!validStatuses.includes(normalized.status)) {
+    normalized.status = 'Open';
   }
 
   if (!normalized.location && normalized.trailName) {
@@ -1591,9 +1592,12 @@ function renderInlineEditForm(incident) {
 }
 
 function renderStatusOptions(currentStatus) {
-  const statuses = ['Flagged', 'Pending Trail Match', 'Reported to District', 'Resolved'];
+  const statuses = ['Open', 'Pending Trail Match', 'In Progress', 'Resolved'];
+  const normalizedCurrent = String(currentStatus || 'Open').trim();
+  const selectedValue = ['Flagged', 'Reported to District'].includes(normalizedCurrent) ? 'Open' : normalizedCurrent;
+
   return statuses
-    .map((status) => `<option value="${escapeAttribute(status)}"${currentStatus === status ? ' selected' : ''}>${escapeHtml(status)}</option>`)
+    .map((status) => `<option value="${escapeAttribute(status)}"${selectedValue === status ? ' selected' : ''}>${escapeHtml(status)}</option>`)
     .join('');
 }
 
@@ -1773,6 +1777,8 @@ function renderReportDetailPage() {
   const priorityBadge = document.getElementById('detailPriorityBadge');
   const currentStatusBadge = document.getElementById('detailCurrentStatusBadge');
   const actionLogStatusSelect = document.getElementById('actionLogStatusSelect');
+  const parkUnitLabel = document.getElementById('detailParkUnit');
+  const categoryLabel = document.getElementById('detailIncidentCategory');
   const trailheadLabel = document.getElementById('detailTrailhead');
   const coordinatesLabel = document.getElementById('detailCoordinates');
   const elevationLabel = document.getElementById('detailElevation');
@@ -1787,7 +1793,7 @@ function renderReportDetailPage() {
   }
 
   if (incidentIdLabel) {
-    incidentIdLabel.textContent = `Incident ID: ${incident.id}`;
+    incidentIdLabel.textContent = `Report ID: ${incident.id}`;
   }
 
   if (dateTimeLabel) {
@@ -1808,6 +1814,14 @@ function renderReportDetailPage() {
   if (actionLogStatusSelect) {
     actionLogStatusSelect.value = toDetailStatusValue(incident.status);
     actionLogStatusSelect.dataset.incidentId = incident.id;
+  }
+
+  if (parkUnitLabel) {
+    parkUnitLabel.textContent = incident.location || incident.trailName || 'Unavailable';
+  }
+
+  if (categoryLabel) {
+    categoryLabel.textContent = incident.type || 'Uncategorized';
   }
 
   if (trailheadLabel) {
@@ -1931,7 +1945,7 @@ function renderReportPhotoGallery(photos, incident) {
   gallery.innerHTML = photos
     .map((photo, index) => `
       <button type="button" class="detail-photo-button" data-photo-src="${escapeAttribute(photo)}" aria-label="Open photo ${index + 1}">
-        <img src="${escapeAttribute(photo)}" alt="${photoAlt}" class="detail-photo-image report-detail-photo" loading="lazy" />
+        <img src="${escapeAttribute(photo)}" alt="${photoAlt}" class="detail-photo-image report-detail-photo report-photo-preview" loading="lazy" />
       </button>
     `)
     .join('');
@@ -1968,15 +1982,22 @@ function setMapLinkState(element, href) {
 }
 
 function toDetailStatusValue(status) {
-  if (status === 'Resolved') return 'Resolved';
-  if (status === 'Pending Trail Match') return 'Pending Trail Match';
+  const normalized = String(status || '').trim();
+  if (normalized === 'Resolved') return 'Resolved';
+  if (normalized === 'In Progress') return 'In Progress';
+  if (normalized === 'Pending Trail Match') return 'Pending Trail Match';
+  if (normalized === 'Open') return 'Open';
+  if (normalized === 'Reported to District') return 'Open';
+  if (normalized === 'Flagged') return 'Open';
   return 'Open';
 }
 
 function fromDetailStatusValue(status) {
-  if (status === 'Resolved') return 'Resolved';
-  if (status === 'Pending Trail Match') return 'Pending Trail Match';
-  return 'Flagged';
+  const normalized = String(status || '').trim();
+  if (normalized === 'Resolved' || normalized === 'Pending Trail Match' || normalized === 'In Progress' || normalized === 'Open') {
+    return normalized;
+  }
+  return 'Open';
 }
 
 function handleReportFollowUpSave(event) {
@@ -2391,6 +2412,7 @@ function toPriorityClass(priority) {
 
 function toStatusClass(status) {
   if (status === 'Resolved') return 'resolved';
+  if (status === 'In Progress') return 'in-progress';
   if (status === 'Reported to District') return 'reported';
   if (status === 'Pending Trail Match') return 'pending-match';
   return 'flagged';
