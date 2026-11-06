@@ -1423,29 +1423,41 @@ function renderTable() {
       const priorityClass = toPriorityClass(incident.priority);
       const statusClass = toStatusClass(incident.status);
       const actionLabel = incident.status === 'Resolved' ? 'Reopen' : 'Resolve';
+      const typeCell = renderTableCell('Type', `<span class="badge ${toTypeClass(incident.type)}">${safeType}</span>`);
+      const locationCell = renderTableCell('Location', `${safeLocation}${trailMeta}`);
+      const priorityCell = renderTableCell('Priority', `<span class="badge ${priorityClass}">${safePriority}</span>`);
+      const statusCell = renderTableCell('Status', `<span class="badge ${statusClass}">${safeStatus}</span>`);
+      const gpsCell = renderTableCell('GPS', safeGps);
+      const dateCell = renderTableCell('Date', safeDate);
+      const photoCellMarkup = renderTableCell('Photo', photoCell);
+      const actionsCell = renderTableCell('Actions', `
+        <div class="actions">
+          ${externalMapActions}
+          <button class="table-button" data-action="edit-match" data-id="${escapeAttribute(incident.id)}">Update Location / Match Trail</button>
+          <button class="table-button toggle-btn" data-action="toggle" data-id="${escapeAttribute(incident.id)}">${actionLabel}</button>
+          <button class="table-button remove-btn" data-action="remove" data-id="${escapeAttribute(incident.id)}">Remove</button>
+          ${editPanel}
+        </div>
+      `);
 
       return `
         <tr>
-          <td data-label="Type"><span class="badge ${toTypeClass(incident.type)}">${safeType}</span></td>
-          <td data-label="Location">${safeLocation}${trailMeta}</td>
-          <td data-label="Priority"><span class="badge ${priorityClass}">${safePriority}</span></td>
-          <td data-label="Status"><span class="badge ${statusClass}">${safeStatus}</span></td>
-          <td data-label="GPS">${safeGps}</td>
-          <td data-label="Date">${safeDate}</td>
-          <td data-label="Photo">${photoCell}</td>
-          <td data-label="Actions">
-            <div class="actions">
-              ${externalMapActions}
-              <button class="table-button" data-action="edit-match" data-id="${escapeAttribute(incident.id)}">Update Location / Match Trail</button>
-              <button class="table-button toggle-btn" data-action="toggle" data-id="${escapeAttribute(incident.id)}">${actionLabel}</button>
-              <button class="table-button remove-btn" data-action="remove" data-id="${escapeAttribute(incident.id)}">Remove</button>
-              ${editPanel}
-            </div>
-          </td>
+          ${typeCell}
+          ${locationCell}
+          ${priorityCell}
+          ${statusCell}
+          ${gpsCell}
+          ${dateCell}
+          ${photoCellMarkup}
+          ${actionsCell}
         </tr>
       `;
     })
     .join('');
+}
+
+function renderTableCell(label, content) {
+  return `<td data-label="${escapeAttribute(label)}">${content}</td>`;
 }
 
 function renderTrailMeta(incident) {
