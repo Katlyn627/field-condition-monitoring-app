@@ -102,22 +102,36 @@ The app features a modern, nature-inspired outdoor ranger aesthetic with high-co
 - ✅ No color-only information; all status uses text + color + icons
 - ✅ Full keyboard support (Tab, Enter, Escape)
 
-**For complete design documentation, see:** [DESIGN-OVERHAUL.md](./DESIGN-OVERHAUL.md), [DESIGN-BEFORE-AFTER.md](./DESIGN-BEFORE-AFTER.md)
+Historical design and enhancement documentation has been archived under the `docs/archive/` folder. The active app remains a single, deployable static site.
 
 ## Project Structure
 
 ```text
 .
+├── .github/workflows/      # Single GitHub Pages deployment workflow
+├── docs/archive/           # Archived design/project history docs
 ├── app.js                  # Core app logic, state handling, GPS, offline behavior, rendering
 ├── index.html              # Landing dashboard / home page
 ├── log.html                # Incident logging form and mobile field inputs
 ├── history.html            # Incident history, filtering, and record management
+├── report-detail.html      # Incident detail view and map actions
 ├── styles.css              # Mobile-first responsive styling
 ├── sw.js                   # Service worker for offline caching
 ├── manifest.json           # PWA install metadata
+├── firebase-config.js      # Optional Firebase sync setup for authenticated cloud workflows
 ├── README.md               # Project documentation
 ├── LICENSE                 # MIT license
+├── .gitignore              # Repo cleanup defaults
+├── .nojekyll               # Keeps GitHub Pages static asset routing clean
 ```
+
+## Deployment
+
+This project uses a single deployment target: GitHub Pages.
+
+- Production deployment is handled via `.github/workflows/deploy-pages.yml`
+- The app is served as a static site from the repository root
+- Only one deployment workflow is maintained for the app; no parallel deployment targets are configured
 
 ## Local Development & Installation
 
