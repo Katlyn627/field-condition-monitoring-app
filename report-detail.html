@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#2e4a3b" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="TrailTracker" />
+    <title>Report Detail | East Bay Trail & Field Condition Tracker</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="report-detail">
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-group">
+          <svg class="brand-logo" viewBox="0 0 64 64" role="img" aria-label="TrailTracker logo">
+            <rect x="2" y="2" width="60" height="60" rx="14" fill="#173c34"></rect>
+            <path d="M12 45h40l-8-12-8 8-6-10-10 14-4-6z" fill="#dfeee4"></path>
+            <path d="M44 12c-7 2-12 8-12 15v3c0 2.8 2.2 5 5 5 10.5 0 19-8.5 19-19v-4c-4-1-8-1-12 0z" fill="#74c69d"></path>
+            <circle cx="19" cy="19" r="4" fill="#f3efe2"></circle>
+          </svg>
+          <p class="eyebrow">East Bay Regional Park Stewardship</p>
+          <h1>Report Detail</h1>
+        </div>
+        <a href="history.html" class="secondary-button back-link">← Back to History Log</a>
+      </header>
+
+      <main class="page-panel-stack">
+        <section class="panel page-header-panel">
+          <p class="section-kicker">Incident report</p>
+          <h2 id="detailIncidentTitle">Incident Report</h2>
+          <div class="report-header-grid">
+            <p id="detailIncidentId">Incident ID: —</p>
+            <p><span id="detailPriorityBadge" class="badge medium">Medium</span></p>
+            <p><span id="detailCurrentStatusBadge" class="badge flagged">Open</span></p>
+          </div>
+          <p id="detailLoggedDateTime">—</p>
+        </section>
+
+        <section id="reportStateMessage" class="panel empty-state" hidden></section>
+
+        <div id="reportDetailContent" class="page-panel-stack" hidden>
+          <section class="panel">
+            <div class="section-heading">
+              <h2>Location &amp; Environmental Data</h2>
+            </div>
+            <div class="report-detail-grid">
+              <article class="insight-card">
+                <h3>Nearest Trailhead</h3>
+                <p id="detailTrailhead">—</p>
+              </article>
+              <article class="insight-card">
+                <h3>Latitude / Longitude</h3>
+                <p id="detailCoordinates">—</p>
+              </article>
+              <article class="insight-card">
+                <h3>Elevation (ft)</h3>
+                <p id="detailElevation">—</p>
+              </article>
+              <article class="insight-card">
+                <h3>Weather at time of log</h3>
+                <p id="detailWeather">—</p>
+              </article>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading">
+              <h2>Full Photo Gallery</h2>
+            </div>
+            <div id="detailPhotoContainer" class="report-photo-gallery"></div>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading">
+              <h2>Incident Details</h2>
+            </div>
+            <div id="detailNotes" class="detail-notes" aria-label="Full notes and field observations"></div>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading">
+              <h2>External Mapping Actions</h2>
+            </div>
+            <div class="hero-actions">
+              <a id="detailMapAllTrails" class="secondary-button detail-map-link" target="_blank" rel="noopener">AllTrails</a>
+              <a id="detailMapGoogle" class="secondary-button detail-map-link" target="_blank" rel="noopener">Google Maps</a>
+              <a id="detailMapApple" class="secondary-button detail-map-link">Apple Maps</a>
+              <a id="detailMapGaia" class="secondary-button detail-map-link" target="_blank" rel="noopener">Gaia GPS</a>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="section-heading">
+              <h2>Post-Hike Action Log</h2>
+            </div>
+            <form id="actionLogForm" class="report-action-form">
+              <label>
+                <span>Update Status</span>
+                <select id="actionLogStatusSelect">
+                  <option value="Open">Open</option>
+                  <option value="Pending Trail Match">Pending Trail Match</option>
+                  <option value="Resolved">Resolved</option>
+                </select>
+              </label>
+              <label>
+                <span>Work Order Notes</span>
+                <textarea
+                  id="followUpActionsInput"
+                  rows="6"
+                  placeholder="Append follow-up actions, work order notes, or district updates."
+                ></textarea>
+              </label>
+              <div class="hero-actions">
+                <button id="saveFollowUpButton" type="submit" class="primary-button">Save Action Log</button>
+              </div>
+            </form>
+            <p id="followUpSaveStatus" class="status-note" aria-live="polite"></p>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <div id="detailImageModal" class="detail-image-modal" hidden>
+      <button id="detailImageModalClose" type="button" class="detail-modal-close" aria-label="Close image preview">×</button>
+      <img id="detailImageModalImg" alt="Expanded report image preview" />
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

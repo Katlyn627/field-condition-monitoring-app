@@ -556,6 +556,7 @@ function initialize() {
   renderDashboard();
   renderTable();
   renderResumeOutput();
+  renderReportDetailPage();
 }
 
 function attachEventListeners() {
@@ -624,6 +625,7 @@ function attachEventListeners() {
 
   window.addEventListener('online', updateConnectionStatus);
   window.addEventListener('offline', updateConnectionStatus);
+  attachReportDetailEventListeners();
 }
 
 function ensureFieldAssistUi() {
@@ -633,7 +635,6 @@ function ensureFieldAssistUi() {
   if (!fieldGrid) return;
 
   ensureNotesField(fieldGrid);
-  ensureElevationBadge();
   ensureNearbyObservationsField(fieldGrid);
   ensureEnvironmentMetricsUi();
 }
@@ -685,17 +686,6 @@ function ensureNotesField(fieldGrid) {
   }
 
   fieldGrid.appendChild(notesLabel);
-}
-
-function ensureElevationBadge() {
-  if (!gpsStatusBadge || document.getElementById('elevationBadge')) return;
-
-  const elevationBadge = document.createElement('span');
-  elevationBadge.id = 'elevationBadge';
-  elevationBadge.className = 'gps-flag';
-  elevationBadge.textContent = 'Elevation: --';
-  elevationBadge.hidden = true;
-  gpsStatusBadge.insertAdjacentElement('afterend', elevationBadge);
 }
 
 function ensureNearbyObservationsField(fieldGrid) {
@@ -970,11 +960,6 @@ function updateWeatherDisplay(weather) {
 }
 
 function setElevationBadge(elevationFeet) {
-  const elevationBadge = document.getElementById('elevationBadge');
-  if (!elevationBadge) return;
-
-  elevationBadge.textContent = `Elevation: ${Math.round(elevationFeet).toLocaleString()} ft`;
-  elevationBadge.hidden = false;
   setEnvironmentDisplay('elevationDisplay', `Elevation: ${Math.round(elevationFeet).toLocaleString()} ft`);
 }
 
@@ -1080,6 +1065,11 @@ function mergeSeedIncidents(savedIncidents, seededIncidents) {
 }
 
 function normalizeIncident(rawIncident = {}) {
+  const normalizedPhoto = sanitizeImageUrl(rawIncident.photo || '');
+  const normalizedPhotos = normalizeIncidentPhotos(rawIncident.photos, normalizedPhoto);
+  const normalizedWeather = normalizeIncidentWeather(rawIncident.weather);
+  const normalizedElevationFeet = normalizeIncidentElevation(rawIncident.elevationFeet);
+
   const normalized = {
     id: String(rawIncident.id || `incident-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`),
     type: String(rawIncident.type || 'Trail Hazard'),
@@ -1090,8 +1080,13 @@ function normalizeIncident(rawIncident = {}) {
     status: String(rawIncident.status || 'Flagged'),
     gps: String(rawIncident.gps || '').trim(),
     date: String(rawIncident.date || new Date().toISOString().slice(0, 10)),
-    photo: sanitizeImageUrl(rawIncident.photo || ''),
-    notes: String(rawIncident.notes || '').trim()
+    photo: normalizedPhoto,
+    photos: normalizedPhotos,
+    notes: String(rawIncident.notes || '').trim(),
+    weather: normalizedWeather,
+    elevationFeet: normalizedElevationFeet,
+    followUpActions: String(rawIncident.followUpActions || '').trim(),
+    createdAt: normalizeIncidentCreatedAt(rawIncident.createdAt, rawIncident.date)
   };
 
   if (normalized.status !== 'Flagged' && normalized.status !== 'Pending Trail Match' && normalized.status !== 'Reported to District' && normalized.status !== 'Resolved') {
@@ -1108,6 +1103,51 @@ function normalizeIncident(rawIncident = {}) {
   }
 
   return normalized;
+}
+
+function normalizeIncidentPhotos(rawPhotos, fallbackPhoto) {
+  const list = Array.isArray(rawPhotos) ? rawPhotos : [];
+  const sanitizedList = list
+    .map((entry) => sanitizeImageUrl(entry))
+    .filter(Boolean);
+
+  if (fallbackPhoto && !sanitizedList.includes(fallbackPhoto)) {
+    sanitizedList.unshift(fallbackPhoto);
+  }
+
+  return sanitizedList;
+}
+
+function normalizeIncidentWeather(rawWeather) {
+  const weather = String(rawWeather || '').trim();
+  if (!weather) return '';
+  if (/^loading$/i.test(weather) || /^unavailable$/i.test(weather)) return '';
+  return weather;
+}
+
+function normalizeIncidentElevation(rawElevation) {
+  const value = Number(rawElevation);
+  return Number.isFinite(value) ? Math.round(value) : null;
+}
+
+function normalizeIncidentCreatedAt(rawCreatedAt, rawDate) {
+  const createdAt = String(rawCreatedAt || '').trim();
+  if (createdAt) {
+    const parsed = new Date(createdAt);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
+  }
+
+  const dateOnly = String(rawDate || '').trim();
+  if (!dateOnly) return new Date().toISOString();
+
+  const fallbackDate = new Date(`${dateOnly}T12:00:00`);
+  if (Number.isNaN(fallbackDate.getTime())) {
+    return new Date().toISOString();
+  }
+
+  return fallbackDate.toISOString();
 }
 
 function persistIncidents() {
@@ -1432,6 +1472,7 @@ function renderTable() {
       const photoCellMarkup = renderTableCell('Photo', photoCell);
       const actionsCell = renderTableCell('Actions', `
         <div class="actions">
+          <a href="report-detail.html?id=${encodeURIComponent(incident.id)}" class="btn-detail">View Full Report</a>
           ${externalMapActions}
           <button class="table-button" data-action="edit-match" data-id="${escapeAttribute(incident.id)}">Update Location / Match Trail</button>
           <button class="table-button toggle-btn" data-action="toggle" data-id="${escapeAttribute(incident.id)}">${actionLabel}</button>
@@ -1654,6 +1695,358 @@ function getGaiaGpsDeepLink(latitude, longitude) {
   return `https://www.gaiagps.com/map/?loc=14/${Number(longitude).toFixed(6)}/${Number(latitude).toFixed(6)}`;
 }
 
+function attachReportDetailEventListeners() {
+  if (page !== 'report-detail') return;
+
+  const actionLogForm = document.getElementById('actionLogForm');
+  const gallery = document.getElementById('detailPhotoContainer');
+  const modal = document.getElementById('detailImageModal');
+  const modalCloseButton = document.getElementById('detailImageModalClose');
+
+  if (actionLogForm) {
+    actionLogForm.addEventListener('submit', handleReportFollowUpSave);
+  }
+
+  if (gallery) {
+    gallery.addEventListener('click', handleGalleryImageOpen);
+  }
+
+  if (modal) {
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        closeDetailImageModal();
+      }
+    });
+  }
+
+  if (modalCloseButton) {
+    modalCloseButton.addEventListener('click', closeDetailImageModal);
+  }
+}
+
+function renderReportDetailPage() {
+  if (page !== 'report-detail') return;
+
+  const reportState = document.getElementById('reportStateMessage');
+  const reportContent = document.getElementById('reportDetailContent');
+  const reportId = getReportIncidentIdFromUrl();
+  const incidents = loadReportIncidentsFromStorage();
+
+  if (!reportId) {
+    setReportDetailState('No report id was provided.', true);
+    return;
+  }
+
+  const incident = incidents.find((entry) => entry.id === reportId);
+  if (!incident) {
+    setReportDetailState('Report not found. Return to history and choose another report.', true);
+    return;
+  }
+
+  setReportDetailState('', false);
+  if (reportContent) {
+    reportContent.hidden = false;
+  }
+
+  const coordinates = parseGpsCoordinates(incident.gps);
+  const nearestTrailhead = deriveNearestTrailheadName(incident, coordinates);
+  const weatherSummary = getIncidentWeatherSummary(incident);
+  const elevationFeet = getIncidentElevationFeet(incident);
+  const incidentPhotos = getIncidentPhotoGallery(incident);
+
+  const incidentTitle = document.getElementById('detailIncidentTitle');
+  const incidentIdLabel = document.getElementById('detailIncidentId');
+  const dateTimeLabel = document.getElementById('detailLoggedDateTime');
+  const priorityBadge = document.getElementById('detailPriorityBadge');
+  const currentStatusBadge = document.getElementById('detailCurrentStatusBadge');
+  const actionLogStatusSelect = document.getElementById('actionLogStatusSelect');
+  const trailheadLabel = document.getElementById('detailTrailhead');
+  const coordinatesLabel = document.getElementById('detailCoordinates');
+  const elevationLabel = document.getElementById('detailElevation');
+  const weatherLabel = document.getElementById('detailWeather');
+  const notesArea = document.getElementById('detailNotes');
+  const followUpArea = document.getElementById('followUpActionsInput');
+  const followUpStatus = document.getElementById('followUpSaveStatus');
+
+  if (incidentTitle) {
+    const typeLabel = incident.type ? `${incident.type}` : 'Incident';
+    incidentTitle.textContent = `${typeLabel} Report`;
+  }
+
+  if (incidentIdLabel) {
+    incidentIdLabel.textContent = `Incident ID: ${incident.id}`;
+  }
+
+  if (dateTimeLabel) {
+    dateTimeLabel.textContent = formatDateTime(incident.createdAt, incident.date);
+  }
+
+  if (priorityBadge) {
+    priorityBadge.className = `badge ${toPriorityClass(incident.priority)}`;
+    priorityBadge.textContent = incident.priority || 'Medium';
+  }
+
+  if (currentStatusBadge) {
+    const statusText = toDetailStatusValue(incident.status);
+    currentStatusBadge.className = `badge ${toStatusClass(incident.status)}`;
+    currentStatusBadge.textContent = statusText;
+  }
+
+  if (actionLogStatusSelect) {
+    actionLogStatusSelect.value = toDetailStatusValue(incident.status);
+    actionLogStatusSelect.dataset.incidentId = incident.id;
+  }
+
+  if (trailheadLabel) {
+    trailheadLabel.textContent = nearestTrailhead || 'Unavailable';
+  }
+
+  if (coordinatesLabel) {
+    coordinatesLabel.textContent = coordinates ? `${coordinates.latitude.toFixed(6)}, ${coordinates.longitude.toFixed(6)}` : 'Unavailable';
+  }
+
+  if (elevationLabel) {
+    elevationLabel.textContent = Number.isFinite(elevationFeet) ? `${Math.round(elevationFeet).toLocaleString()} ft` : 'Unavailable';
+  }
+
+  if (weatherLabel) {
+    weatherLabel.textContent = weatherSummary || 'Unavailable';
+  }
+
+  if (notesArea) {
+    notesArea.textContent = incident.notes || 'No notes recorded for this report.';
+  }
+
+  if (followUpArea) {
+    followUpArea.value = incident.followUpActions || '';
+    followUpArea.dataset.incidentId = incident.id;
+  }
+
+  if (followUpStatus) {
+    followUpStatus.textContent = '';
+  }
+
+  renderReportPhotoGallery(incidentPhotos, incident);
+  renderReportMapLinks(incident, coordinates);
+
+  function setReportDetailState(message, showState) {
+    if (reportState) {
+      reportState.textContent = message;
+      reportState.hidden = !showState;
+    }
+
+    if (reportContent) {
+      reportContent.hidden = showState;
+    }
+  }
+}
+
+function getReportIncidentIdFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  return id ? String(id).trim() : '';
+}
+
+function loadReportIncidentsFromStorage() {
+  const storageKeys = [STORAGE_KEY, 'incidents'];
+
+  for (const key of storageKeys) {
+    const raw = localStorage.getItem(key);
+    if (!raw) continue;
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed.map(normalizeIncident);
+      }
+    } catch (error) {
+      continue;
+    }
+  }
+
+  return [];
+}
+
+function deriveNearestTrailheadName(incident, coordinates) {
+  if (coordinates) {
+    const nearest = findNearestTrailhead(coordinates.latitude, coordinates.longitude);
+    if (nearest) return nearest;
+  }
+
+  return incident.location || incident.trailName || '';
+}
+
+function getIncidentWeatherSummary(incident) {
+  const fromField = String(incident.weather || '').trim();
+  if (fromField) return fromField;
+
+  const notes = String(incident.notes || '');
+  const match = notes.match(/Weather:\s*([^\n]+)/i);
+  return match ? match[1].trim() : '';
+}
+
+function getIncidentElevationFeet(incident) {
+  const directValue = Number(incident.elevationFeet);
+  if (Number.isFinite(directValue)) {
+    return directValue;
+  }
+
+  const notes = String(incident.notes || '');
+  const match = notes.match(/Elevation:\s*([0-9,]+)\s*ft/i);
+  if (!match) return null;
+
+  const value = Number(match[1].replace(/,/g, ''));
+  return Number.isFinite(value) ? value : null;
+}
+
+function getIncidentPhotoGallery(incident) {
+  const normalizedPhotos = normalizeIncidentPhotos(incident.photos, sanitizeImageUrl(incident.photo));
+  return normalizedPhotos.filter((entry) => entry.startsWith('data:image/'));
+}
+
+function renderReportPhotoGallery(photos, incident) {
+  const gallery = document.getElementById('detailPhotoContainer');
+  if (!gallery) return;
+
+  if (!photos.length) {
+    gallery.innerHTML = '<p class="empty-state">No Field Photo Attached</p>';
+    return;
+  }
+
+  const photoAlt = escapeAttribute(`${incident.location || incident.type || 'Trail report'} field photo`);
+  gallery.innerHTML = photos
+    .map((photo, index) => `
+      <button type="button" class="detail-photo-button" data-photo-src="${escapeAttribute(photo)}" aria-label="Open photo ${index + 1}">
+        <img src="${escapeAttribute(photo)}" alt="${photoAlt}" class="detail-photo-image" loading="lazy" />
+      </button>
+    `)
+    .join('');
+}
+
+function renderReportMapLinks(incident, coordinates) {
+  const allTrailsLink = document.getElementById('detailMapAllTrails');
+  const googleMapsLink = document.getElementById('detailMapGoogle');
+  const appleMapsLink = document.getElementById('detailMapApple');
+  const gaiaMapsLink = document.getElementById('detailMapGaia');
+
+  if (allTrailsLink) {
+    allTrailsLink.href = getAllTrailsDeepLink(incident, coordinates);
+  }
+
+  setMapLinkState(googleMapsLink, coordinates ? getGoogleMapsDeepLink(coordinates.latitude, coordinates.longitude) : '');
+  setMapLinkState(appleMapsLink, coordinates ? getGeoDeepLink(coordinates.latitude, coordinates.longitude) : '');
+  setMapLinkState(gaiaMapsLink, coordinates ? getGaiaGpsDeepLink(coordinates.latitude, coordinates.longitude) : '');
+}
+
+function setMapLinkState(element, href) {
+  if (!element) return;
+
+  if (!href) {
+    element.removeAttribute('href');
+    element.setAttribute('aria-disabled', 'true');
+    element.classList.add('disabled-link');
+    return;
+  }
+
+  element.href = href;
+  element.removeAttribute('aria-disabled');
+  element.classList.remove('disabled-link');
+}
+
+function toDetailStatusValue(status) {
+  if (status === 'Resolved') return 'Resolved';
+  if (status === 'Pending Trail Match') return 'Pending Trail Match';
+  return 'Open';
+}
+
+function fromDetailStatusValue(status) {
+  if (status === 'Resolved') return 'Resolved';
+  if (status === 'Pending Trail Match') return 'Pending Trail Match';
+  return 'Flagged';
+}
+
+function handleReportFollowUpSave(event) {
+  event.preventDefault();
+
+  const followUpInput = document.getElementById('followUpActionsInput');
+  const statusSelect = document.getElementById('actionLogStatusSelect');
+  const statusMessage = document.getElementById('followUpSaveStatus');
+  if (!followUpInput) return;
+
+  const incidentId = (statusSelect && statusSelect.dataset.incidentId) || followUpInput.dataset.incidentId;
+  if (!incidentId) return;
+
+  const incident = state.incidents.find((entry) => entry.id === incidentId);
+  if (!incident) return;
+
+  const newEntry = String(followUpInput.value || '').trim();
+  if (newEntry) {
+    const stamp = new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    }).format(new Date());
+    const line = `[${stamp}] ${newEntry}`;
+    incident.followUpActions = incident.followUpActions ? `${incident.followUpActions}\n${line}` : line;
+  }
+
+  if (statusSelect) {
+    incident.status = fromDetailStatusValue(statusSelect.value);
+  }
+
+  persistIncidents();
+
+  followUpInput.value = '';
+  renderReportDetailPage();
+
+  if (statusMessage) {
+    statusMessage.textContent = 'Follow-up actions saved.';
+  }
+}
+
+function handleGalleryImageOpen(event) {
+  const trigger = event.target.closest('[data-photo-src]');
+  if (!trigger) return;
+
+  const source = trigger.dataset.photoSrc || '';
+  if (!source) return;
+
+  const modal = document.getElementById('detailImageModal');
+  const modalImage = document.getElementById('detailImageModalImg');
+  if (!modal || !modalImage) return;
+
+  modalImage.src = source;
+  modal.hidden = false;
+}
+
+function closeDetailImageModal() {
+  const modal = document.getElementById('detailImageModal');
+  const modalImage = document.getElementById('detailImageModalImg');
+  if (!modal || !modalImage) return;
+
+  modal.hidden = true;
+  modalImage.src = '';
+}
+
+function formatDateTime(createdAt, fallbackDate) {
+  const created = String(createdAt || '').trim();
+  const parsedCreated = created ? new Date(created) : null;
+
+  if (parsedCreated && !Number.isNaN(parsedCreated.getTime())) {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    }).format(parsedCreated);
+  }
+
+  return formatDate(fallbackDate);
+}
+
 async function handleInlineEditSubmit(event) {
   const editForm = event.target.closest('form[data-edit-form="true"]');
   if (!editForm) return;
@@ -1683,6 +2076,7 @@ async function handleInlineEditSubmit(event) {
   incident.gps = gps;
   incident.status = status;
   incident.photo = updatedPhoto;
+  incident.photos = normalizeIncidentPhotos(incident.photos, updatedPhoto);
 
   if (!incident.location && incident.trailName) {
     incident.location = incident.trailName;
@@ -1717,6 +2111,8 @@ function handleFormSubmit(event) {
   const location = String(formData.get('location') || '').trim();
   const gps = String(formData.get('gps') || '').trim();
 
+  const selectedPhotoValue = getSelectedPhotoValue();
+
   const incident = normalizeIncident({
     id: `incident-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
     type: String(formData.get('type') || 'Trail Hazard'),
@@ -1725,8 +2121,12 @@ function handleFormSubmit(event) {
     status: pendingTrailMatch ? 'Pending Trail Match' : String(formData.get('status') || 'Flagged'),
     gps,
     date: String(formData.get('date') || new Date().toISOString().slice(0, 10)),
-    photo: getSelectedPhotoValue(),
-    notes: String(formData.get('notes') || '').trim()
+    createdAt: new Date().toISOString(),
+    photo: selectedPhotoValue,
+    photos: selectedPhotoValue ? [selectedPhotoValue] : [],
+    notes: String(formData.get('notes') || '').trim(),
+    weather: getCurrentWeatherSnapshot(),
+    elevationFeet: getCurrentElevationSnapshot()
   });
 
   if (!incident.location && !incident.gps) {
@@ -1753,6 +2153,34 @@ function getSelectedPhotoValue() {
   }
 
   return photoUrlInput ? sanitizeImageUrl(photoUrlInput.value) : '';
+}
+
+function getCurrentWeatherSnapshot() {
+  const weatherDisplay = document.getElementById('weatherDisplay');
+  if (!weatherDisplay) return '';
+
+  const fullText = String(weatherDisplay.textContent || '').trim();
+  if (!fullText || /loading|unavailable/i.test(fullText)) {
+    return '';
+  }
+
+  return fullText.replace(/^Weather:\s*/i, '').trim();
+}
+
+function getCurrentElevationSnapshot() {
+  const elevationDisplay = document.getElementById('elevationDisplay');
+  if (!elevationDisplay) return null;
+
+  const fullText = String(elevationDisplay.textContent || '').trim();
+  if (!fullText || /loading|unavailable/i.test(fullText)) {
+    return null;
+  }
+
+  const match = fullText.match(/Elevation:\s*([0-9,]+)/i);
+  if (!match) return null;
+
+  const value = Number(match[1].replace(/,/g, ''));
+  return Number.isFinite(value) ? Math.round(value) : null;
 }
 
 function sanitizeImageUrl(url) {
@@ -1823,10 +2251,7 @@ function clearIncidentForm() {
 }
 
 function clearElevationBadge() {
-  const elevationBadge = document.getElementById('elevationBadge');
-  if (!elevationBadge) return;
-  elevationBadge.textContent = 'Elevation: --';
-  elevationBadge.hidden = true;
+  setEnvironmentDisplay('elevationDisplay', 'Elevation: Loading...');
 }
 
 function resetToLatestSeededData() {
