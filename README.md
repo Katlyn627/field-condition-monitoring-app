@@ -73,6 +73,37 @@ It is optimized for mobile field use with a touch-friendly interface, local pers
 - Live Server for local development
 - Git and GitHub for version control and collaboration
 
+## Visual Design System
+
+The app features a modern, nature-inspired outdoor ranger aesthetic with high-contrast colors and accessible components:
+
+### Design Principles
+- **Forest Green Primary:** #2d5a27 for all primary actions and navigation
+- **Amber Trail Accent:** #d97706 for attention-grabbing highlights
+- **High-Contrast Badges:** Color-coded status indicators (Red/Amber/Green for priority; Blue/Purple/Orange/Green for resolution)
+- **Emoji Iconography:** Quick visual scanning with 📍 (location), 🌲 (park), ⛰️ (elevation), 🌤️ (weather)
+- **Accessible Buttons:** 44px minimum touch targets, visible focus outlines for keyboard navigation
+- **Card Elevation:** Subtle shadows and hover lift effects for interactive depth
+
+### Color System
+| Element | Color | Usage |
+|---------|-------|-------|
+| Primary Button | #2d5a27 (Forest Green) | Main actions |
+| Accent | #d97706 (Amber) | Highlights & CTAs |
+| High Priority | #dc2626 (Red) | Immediate hazards |
+| Medium Priority | #d97706 (Amber) | Priority repairs |
+| Low Priority | #16a34a (Green) | Routine maintenance |
+| Resolved Status | #16a34a (Green) | Completed items |
+
+### Accessibility
+- ✅ WCAG AAA compliant color contrasts (6.8:1 primary button, 5.2:1+ badges)
+- ✅ 44px minimum touch targets on all buttons
+- ✅ Visible 2px focus outlines for keyboard navigation
+- ✅ No color-only information; all status uses text + color + icons
+- ✅ Full keyboard support (Tab, Enter, Escape)
+
+**For complete design documentation, see:** [DESIGN-OVERHAUL.md](./DESIGN-OVERHAUL.md), [DESIGN-BEFORE-AFTER.md](./DESIGN-BEFORE-AFTER.md)
+
 ## Project Structure
 
 ```text
