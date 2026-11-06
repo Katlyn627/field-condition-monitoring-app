@@ -1525,7 +1525,8 @@ function renderReportDetailPage() {
   }
 
   if (parkUnitLabel) {
-    parkUnitLabel.textContent = incident.location || incident.trailName || 'Unavailable';
+    const parkText = incident.location || incident.trailName || 'Unavailable';
+    parkUnitLabel.innerHTML = `<span class="badge park">🌲 ${escapeHtml(parkText)}</span>`;
   }
 
   if (categoryLabel) {
@@ -1537,13 +1538,14 @@ function renderReportDetailPage() {
   }
 
   if (coordinatesLabel) {
-    coordinatesLabel.textContent = coordinates ? `${Number(coordinates.latitude).toFixed(4)}, ${Number(coordinates.longitude).toFixed(4)}` : 'Unavailable';
+    const coordText = coordinates ? `${Number(coordinates.latitude).toFixed(4)}, ${Number(coordinates.longitude).toFixed(4)}` : 'Unavailable';
+    coordinatesLabel.innerHTML = `<span class="badge location">📍 ${escapeHtml(coordText)}</span>`;
   }
 
   if (elevationLabel) {
     const elevationFeetValue = getIncidentElevationFeet(incident);
     if (Number.isFinite(elevationFeetValue)) {
-      elevationLabel.textContent = `${Math.round(elevationFeetValue).toLocaleString()} ft`;
+      elevationLabel.innerHTML = `<span class="badge elevation">⛰️ ${Math.round(elevationFeetValue).toLocaleString()} ft</span>`;
     } else {
       elevationLabel.textContent = 'Pending Online Sync';
     }
@@ -1552,7 +1554,7 @@ function renderReportDetailPage() {
   if (weatherLabel) {
     const weatherSummaryValue = getIncidentWeatherSummary(incident);
     if (weatherSummaryValue) {
-      weatherLabel.textContent = weatherSummaryValue;
+      weatherLabel.innerHTML = `<span class="badge weather">🌤️ ${weatherSummaryValue}</span>`;
     } else {
       weatherLabel.textContent = 'Pending Online Sync';
     }
