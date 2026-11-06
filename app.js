@@ -418,7 +418,7 @@ function renderIncidentPhotoCell(incident, safePhotoAlt) {
 }
 
 function deriveLocationMatchedPhoto(incident) {
-  const sanitizedPhoto = sanitizeImageUrl(incident.photo || '');
+  const sanitizedPhoto = sanitizeImageUrl(incident.photo || incident.photoUrl || '');
   const coordinates = parseGpsCoordinates(incident.gps);
   const isSeededIncident = String(incident.id || '').startsWith('sample-');
   const isDataUpload = sanitizedPhoto.startsWith('data:image/');
@@ -1065,7 +1065,7 @@ function mergeSeedIncidents(savedIncidents, seededIncidents) {
 }
 
 function normalizeIncident(rawIncident = {}) {
-  const normalizedPhoto = sanitizeImageUrl(rawIncident.photo || '');
+  const normalizedPhoto = sanitizeImageUrl(rawIncident.photo || rawIncident.photoUrl || '');
   const normalizedPhotos = normalizeIncidentPhotos(rawIncident.photos, normalizedPhoto);
   const normalizedWeather = normalizeIncidentWeather(rawIncident.weather);
   const normalizedElevationFeet = normalizeIncidentElevation(rawIncident.elevationFeet);
@@ -1081,6 +1081,7 @@ function normalizeIncident(rawIncident = {}) {
     gps: String(rawIncident.gps || '').trim(),
     date: String(rawIncident.date || new Date().toISOString().slice(0, 10)),
     photo: normalizedPhoto,
+    photoUrl: normalizedPhoto,
     photos: normalizedPhotos,
     notes: String(rawIncident.notes || '').trim(),
     weather: normalizedWeather,
@@ -1700,8 +1701,8 @@ function attachReportDetailEventListeners() {
 
   const actionLogForm = document.getElementById('actionLogForm');
   const gallery = document.getElementById('detailPhotoContainer');
-  const modal = document.getElementById('detailImageModal');
-  const modalCloseButton = document.getElementById('detailImageModalClose');
+  const modal = document.getElementById('imageModal') || document.getElementById('detailImageModal');
+  const modalCloseButton = document.getElementById('closeModalBtn') || document.getElementById('detailImageModalClose');
 
   if (actionLogForm) {
     actionLogForm.addEventListener('submit', handleReportFollowUpSave);
@@ -1722,6 +1723,18 @@ function attachReportDetailEventListeners() {
   if (modalCloseButton) {
     modalCloseButton.addEventListener('click', closeDetailImageModal);
   }
+
+  document.getElementById('closeModalBtn')?.addEventListener('click', () => {
+    const imageModal = document.getElementById('imageModal');
+    imageModal?.classList.remove('active');
+    imageModal && (imageModal.hidden = true);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      closeDetailImageModal();
+    }
+  });
 }
 
 function renderReportDetailPage() {
@@ -1900,8 +1913,9 @@ function getIncidentElevationFeet(incident) {
 }
 
 function getIncidentPhotoGallery(incident) {
-  const normalizedPhotos = normalizeIncidentPhotos(incident.photos, sanitizeImageUrl(incident.photo));
-  return normalizedPhotos.filter((entry) => entry.startsWith('data:image/'));
+  const fallbackPhoto = sanitizeImageUrl(incident.photo || incident.photoUrl || '');
+  const normalizedPhotos = normalizeIncidentPhotos(incident.photos, fallbackPhoto);
+  return normalizedPhotos.filter((entry) => entry.startsWith('data:image/') || entry.startsWith('blob:') || /^https?:\/\//.test(entry));
 }
 
 function renderReportPhotoGallery(photos, incident) {
@@ -1909,7 +1923,7 @@ function renderReportPhotoGallery(photos, incident) {
   if (!gallery) return;
 
   if (!photos.length) {
-    gallery.innerHTML = '<p class="empty-state">No Field Photo Attached</p>';
+    gallery.innerHTML = '<p class="empty-state">No field photo attached</p>';
     return;
   }
 
@@ -1917,7 +1931,7 @@ function renderReportPhotoGallery(photos, incident) {
   gallery.innerHTML = photos
     .map((photo, index) => `
       <button type="button" class="detail-photo-button" data-photo-src="${escapeAttribute(photo)}" aria-label="Open photo ${index + 1}">
-        <img src="${escapeAttribute(photo)}" alt="${photoAlt}" class="detail-photo-image" loading="lazy" />
+        <img src="${escapeAttribute(photo)}" alt="${photoAlt}" class="detail-photo-image report-detail-photo" loading="lazy" />
       </button>
     `)
     .join('');
@@ -2013,21 +2027,25 @@ function handleGalleryImageOpen(event) {
   const source = trigger.dataset.photoSrc || '';
   if (!source) return;
 
-  const modal = document.getElementById('detailImageModal');
+  const modal = document.getElementById('imageModal') || document.getElementById('detailImageModal');
   const modalImage = document.getElementById('detailImageModalImg');
   if (!modal || !modalImage) return;
 
   modalImage.src = source;
+  modal.classList.add('active');
   modal.hidden = false;
+  document.body.style.overflow = 'hidden';
 }
 
 function closeDetailImageModal() {
-  const modal = document.getElementById('detailImageModal');
+  const modal = document.getElementById('imageModal') || document.getElementById('detailImageModal');
   const modalImage = document.getElementById('detailImageModalImg');
   if (!modal || !modalImage) return;
 
+  modal.classList.remove('active');
   modal.hidden = true;
   modalImage.src = '';
+  document.body.style.overflow = '';
 }
 
 function formatDateTime(createdAt, fallbackDate) {
