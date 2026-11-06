@@ -635,6 +635,37 @@ function ensureFieldAssistUi() {
   ensureNotesField(fieldGrid);
   ensureElevationBadge();
   ensureNearbyObservationsField(fieldGrid);
+  ensureEnvironmentMetricsUi();
+}
+
+function ensureEnvironmentMetricsUi() {
+  const metrics = document.getElementById('envMetrics');
+  if (metrics) return;
+
+  const fieldGrid = form && form.querySelector('.field-grid');
+  if (!fieldGrid) return;
+
+  const metricsContainer = document.createElement('div');
+  metricsContainer.id = 'envMetrics';
+  metricsContainer.className = 'env-metrics';
+  metricsContainer.style.display = 'none';
+  metricsContainer.style.margin = '10px 0';
+  metricsContainer.style.padding = '10px';
+  metricsContainer.style.background = '#e2e8f0';
+  metricsContainer.style.borderRadius = '8px';
+  metricsContainer.innerHTML = `
+    <strong>Field Conditions:</strong>
+    <span id="elevationDisplay">Elevation: Loading...</span> |
+    <span id="weatherDisplay">Weather: Loading...</span>
+  `;
+
+  const photoUrlLabel = photoUrlInput ? photoUrlInput.closest('label') : null;
+  if (photoUrlLabel) {
+    fieldGrid.insertBefore(metricsContainer, photoUrlLabel);
+    return;
+  }
+
+  fieldGrid.appendChild(metricsContainer);
 }
 
 function ensureNotesField(fieldGrid) {
@@ -741,11 +772,21 @@ function handleGeolocationCapture() {
         locationInput.value = trailheadName;
       }
 
+      if (!navigator.onLine) {
+        hideEnvironmentMetrics();
+        setNearbyObservationsPlaceholder('Offline mode: nearby observations unavailable.');
+        return;
+      }
+
+      showEnvironmentMetrics();
+      setEnvironmentDisplay('elevationDisplay', 'Elevation: Loading...');
+      setEnvironmentDisplay('weatherDisplay', 'Weather: Loading...');
       enrichLocationContext(latitude, longitude);
     },
     (error) => {
       gpsInput.value = 'Location unavailable';
       updateGpsStatusBadge(false);
+      hideEnvironmentMetrics();
       console.error('Geolocation error:', error);
     },
     {
@@ -756,25 +797,61 @@ function handleGeolocationCapture() {
   );
 }
 
+function showEnvironmentMetrics() {
+  const envMetrics = document.getElementById('envMetrics');
+  if (envMetrics) {
+    envMetrics.style.display = 'block';
+  }
+}
+
+function hideEnvironmentMetrics() {
+  const envMetrics = document.getElementById('envMetrics');
+  if (envMetrics) {
+    envMetrics.style.display = 'none';
+  }
+}
+
+function setEnvironmentDisplay(id, value) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.textContent = value;
+  }
+}
+
 function enrichLocationContext(latitude, longitude) {
   if (!navigator.onLine) {
+    hideEnvironmentMetrics();
     setNearbyObservationsPlaceholder('Offline mode: nearby observations unavailable.');
     return;
   }
 
   fetchLocationWeather(latitude, longitude)
     .then((weather) => {
-      if (!weather) return;
+      if (!weather) {
+        setEnvironmentDisplay('weatherDisplay', 'Weather: Unavailable');
+        return;
+      }
+
+      updateWeatherDisplay(weather);
       appendWeatherToNotes(weather);
     })
-    .catch(() => null);
+    .catch(() => {
+      setEnvironmentDisplay('weatherDisplay', 'Weather: Unavailable');
+    });
 
   fetchUSGSElevation(latitude, longitude)
     .then((elevationFeet) => {
-      if (!Number.isFinite(elevationFeet)) return;
+      if (!Number.isFinite(elevationFeet)) {
+        setEnvironmentDisplay('elevationDisplay', 'Elevation: Unavailable');
+        return;
+      }
+
       setElevationBadge(elevationFeet);
+      appendElevationToNotes(elevationFeet);
     })
-    .catch(() => null);
+    .catch(() => {
+      setEnvironmentDisplay('elevationDisplay', 'Elevation: Unavailable');
+    });
 
   fetchNearbyObservations(latitude, longitude)
     .then((observations) => {
@@ -868,11 +945,28 @@ function appendWeatherToNotes(weather) {
   const notesInput = document.getElementById('incidentNotes');
   if (!notesInput) return;
 
-  const weatherSummary = `Weather: ${weather.temperatureC.toFixed(1)}°C, ${weather.condition}`;
+  const temperatureF = ((weather.temperatureC * 9) / 5) + 32;
+  const weatherSummary = `Weather: ${Math.round(temperatureF)}°F, ${weather.condition}`;
   const currentNotes = notesInput.value.trim();
 
   if (currentNotes.includes(weatherSummary)) return;
   notesInput.value = currentNotes ? `${currentNotes}\n${weatherSummary}` : weatherSummary;
+}
+
+function appendElevationToNotes(elevationFeet) {
+  const notesInput = document.getElementById('incidentNotes');
+  if (!notesInput) return;
+
+  const elevationSummary = `Elevation: ${Math.round(elevationFeet).toLocaleString()} ft`;
+  const currentNotes = notesInput.value.trim();
+
+  if (currentNotes.includes(elevationSummary)) return;
+  notesInput.value = currentNotes ? `${currentNotes}\n${elevationSummary}` : elevationSummary;
+}
+
+function updateWeatherDisplay(weather) {
+  const temperatureF = ((weather.temperatureC * 9) / 5) + 32;
+  setEnvironmentDisplay('weatherDisplay', `Weather: ${Math.round(temperatureF)}°F, ${weather.condition}`);
 }
 
 function setElevationBadge(elevationFeet) {
@@ -881,6 +975,7 @@ function setElevationBadge(elevationFeet) {
 
   elevationBadge.textContent = `Elevation: ${Math.round(elevationFeet).toLocaleString()} ft`;
   elevationBadge.hidden = false;
+  setEnvironmentDisplay('elevationDisplay', `Elevation: ${Math.round(elevationFeet).toLocaleString()} ft`);
 }
 
 function setNearbyObservationsPlaceholder(text) {
