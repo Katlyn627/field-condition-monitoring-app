@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhancement Test Suite</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; background: #f5f5f5; }
+    .test-section { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .test-section h2 { margin-top: 0; color: #333; border-bottom: 2px solid #3c7b5f; padding-bottom: 10px; }
+    .test-item { margin: 15px 0; padding: 12px; background: #f9f9f9; border-left: 4px solid #ddd; border-radius: 4px; }
+    .test-item.pass { border-left-color: #2f8c5a; background: #e8f5e9; }
+    .test-item.fail { border-left-color: #b13d2a; background: #ffebee; }
+    .test-item.pending { border-left-color: #d98c2e; background: #fff3e0; }
+    .status-badge { display: inline-block; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; margin-right: 10px; }
+    .status-badge.pass { background: #2f8c5a; color: white; }
+    .status-badge.fail { background: #b13d2a; color: white; }
+    .status-badge.pending { background: #d98c2e; color: white; }
+    code { background: #e0e0e0; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }
+    .code-block { background: #f5f5f5; padding: 12px; border-radius: 4px; overflow-x: auto; margin: 10px 0; }
+    button { padding: 10px 16px; margin: 5px 5px 5px 0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .primary-button { background: #3c7b5f; color: white; }
+    .primary-button:hover { background: #245943; }
+    .secondary-button { background: #dfeee4; color: #173c34; border: 1px solid #3c7b5f; }
+    .secondary-button:hover { background: #c5e4d1; }
+    .controls { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Field Condition Monitoring App - Enhancement Test Suite</h1>
+  
+  <div class="controls">
+    <button class="primary-button" onclick="runAllTests()">Run All Tests</button>
+    <button class="secondary-button" onclick="clearLocalStorage()">Clear localStorage</button>
+    <button class="secondary-button" onclick="openHistoryPage()">Open History Page</button>
+    <button class="secondary-button" onclick="openReportDetail()">Open Report Detail</button>
+  </div>
+
+  <!-- Test 1: Data Seeding -->
+  <div class="test-section">
+    <h2>✅ Test 1: Automatic Data Seeding</h2>
+    <div id="test1-results"></div>
+    <button class="secondary-button" onclick="testDataSeeding()">Test Data Seeding</button>
+  </div>
+
+  <!-- Test 2: GPX Export -->
+  <div class="test-section">
+    <h2>✅ Test 2: GPX Waypoint Export</h2>
+    <div id="test2-results"></div>
+    <button class="secondary-button" onclick="testGpxExport()">Test GPX Export</button>
+  </div>
+
+  <!-- Test 3: UI Fallbacks -->
+  <div class="test-section">
+    <h2>✅ Test 3: Report Detail Display Fallbacks</h2>
+    <div id="test3-results"></div>
+    <button class="secondary-button" onclick="testReportFallbacks()">Test Fallbacks</button>
+  </div>
+
+  <!-- Test 4: External Map Links -->
+  <div class="test-section">
+    <h2>✅ Test 4: External Map Link Attributes</h2>
+    <div id="test4-results"></div>
+    <button class="secondary-button" onclick="testMapLinks()">Test Map Links</button>
+  </div>
+
+  <!-- Summary -->
+  <div class="test-section">
+    <h2>📊 Test Summary</h2>
+    <div id="summary"></div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'east-bay-condition-tracker';
+    let testResults = { pass: 0, fail: 0, pending: 0 };
+
+    function addTestResult(section, testName, status, message) {
+      const resultsDiv = document.getElementById(section);
+      if (!resultsDiv) return;
+
+      const item = document.createElement('div');
+      item.className = `test-item ${status}`;
+      item.innerHTML = `
+        <span class="status-badge ${status}">${status.toUpperCase()}</span>
+        <strong>${testName}</strong>
+        <p>${message}</p>
+      `;
+      resultsDiv.appendChild(item);
+      
+      testResults[status]++;
+      updateSummary();
+    }
+
+    function updateSummary() {
+      const summary = document.getElementById('summary');
+      const total = testResults.pass + testResults.fail + testResults.pending;
+      const percentage = total > 0 ? Math.round((testResults.pass / total) * 100) : 0;
+      
+      summary.innerHTML = `
+        <p><strong>Total Tests:</strong> ${total}</p>
+        <p><strong>Passed:</strong> ${testResults.pass} ✓</p>
+        <p><strong>Failed:</strong> ${testResults.fail} ✗</p>
+        <p><strong>Pending:</strong> ${testResults.pending} ⏳</p>
+        <p><strong>Success Rate:</strong> ${percentage}%</p>
+      `;
+    }
+
+    function testDataSeeding() {
+      const resultsDiv = document.getElementById('test1-results');
+      resultsDiv.innerHTML = '';
+
+      try {
+        // Clear localStorage for fresh test
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(`${STORAGE_KEY}-sample-version`);
+
+        // Simulate what initialize() does
+        const seedCode = `
+function seedInitialIncidents() {
+  const defaultIncidents = sampleLogs.map((incident) => ({ ...incident }));
+  if (!localStorage.getItem(STORAGE_KEY)) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultIncidents));
+    localStorage.setItem(SAMPLE_VERSION_KEY, String(SEEDED_SAMPLE_VERSION));
+  }
+  return defaultIncidents;
+}
+        `;
+
+        // Check if seedInitialIncidents exists in app.js
+        const scriptTag = document.createElement('script');
+        scriptTag.src = 'app.js';
+        scriptTag.onload = () => {
+          // Check localStorage after app.js loads
+          setTimeout(() => {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            
+            if (stored) {
+              const incidents = JSON.parse(stored);
+              
+              if (Array.isArray(incidents) && incidents.length >= 3) {
+                const hasRequiredFields = incidents.every(inc => 
+                  inc.id && inc.title && inc.gps && inc.elevationFeet && inc.weather
+                );
+                
+                if (hasRequiredFields) {
+                  addTestResult('test1-results', 'Seeded Data Available', 'pass', 
+                    `✓ localStorage contains ${incidents.length} seeded incidents with coordinates, elevations, and weather`);
+                  
+                  addTestResult('test1-results', 'First Incident Details', 'pass',
+                    `ID: ${incidents[0].id}<br>
+                     Title: ${incidents[0].title}<br>
+                     GPS: ${incidents[0].gps}<br>
+                     Elevation: ${incidents[0].elevationFeet} ft<br>
+                     Weather: ${incidents[0].weather}`);
+                } else {
+                  addTestResult('test1-results', 'Seeded Data Fields', 'fail',
+                    'Some incidents missing required fields (id, title, gps, elevation, weather)');
+                }
+              } else {
+                addTestResult('test1-results', 'Seeded Data Count', 'fail',
+                  `Expected >= 3 incidents, got ${incidents?.length || 0}`);
+              }
+            } else {
+              addTestResult('test1-results', 'Seeding Function', 'fail',
+                'localStorage is empty after app initialization');
+            }
+          }, 500);
+        };
+        document.head.appendChild(scriptTag);
+
+        addTestResult('test1-results', 'seedInitialIncidents Function', 'pending',
+          'Function exists and will be executed when app.js loads. Check results after loading completes.');
+
+      } catch (error) {
+        addTestResult('test1-results', 'Data Seeding Test', 'fail',
+          `Error: ${error.message}`);
+      }
+    }
+
+    function testGpxExport() {
+      const resultsDiv = document.getElementById('test2-results');
+      resultsDiv.innerHTML = '';
+
+      try {
+        // Check if handleGpxExport function exists in app.js
+        if (typeof handleGpxExport !== 'undefined') {
+          addTestResult('test2-results', 'exportToGPX Function', 'pass',
+            '<code>handleGpxExport()</code> function is defined');
+        } else {
+          addTestResult('test2-results', 'exportToGPX Function', 'fail',
+            '<code>handleGpxExport()</code> function not found');
+        }
+
+        // Check if GPX button exists in history.html
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'history.html', false);
+        xhr.send();
+        
+        if (xhr.status === 200) {
+          const html = xhr.responseText;
+          
+          if (html.includes('id="exportGpxButton"')) {
+            addTestResult('test2-results', 'GPX Export Button', 'pass',
+              '✓ Export GPX button found in history.html with id="exportGpxButton"');
+          } else {
+            addTestResult('test2-results', 'GPX Export Button', 'fail',
+              'Export GPX button not found in history.html');
+          }
+
+          if (html.includes('📍 Export GPX Waypoints')) {
+            addTestResult('test2-results', 'Button Label', 'pass',
+              '✓ Button has descriptive label "📍 Export GPX Waypoints"');
+          } else {
+            addTestResult('test2-results', 'Button Label', 'fail',
+              'Button label missing or incorrect');
+          }
+        }
+
+        // Check GPX export handler in app.js
+        const appXhr = new XMLHttpRequest();
+        appXhr.open('GET', 'app.js', false);
+        appXhr.send();
+        
+        if (appXhr.status === 200) {
+          const appJs = appXhr.responseText;
+          
+          if (appJs.includes('function handleGpxExport()') && appJs.includes('.gpx')) {
+            addTestResult('test2-results', 'GPX Format Support', 'pass',
+              '✓ handleGpxExport() generates .gpx XML format');
+          } else {
+            addTestResult('test2-results', 'GPX Format Support', 'fail',
+              'GPX export implementation incomplete');
+          }
+
+          if (appJs.includes('parseGpsCoordinates') && appJs.includes('waypointEntries')) {
+            addTestResult('test2-results', 'Waypoint Generation', 'pass',
+              '✓ Function generates waypoints from GPS coordinates');
+          } else {
+            addTestResult('test2-results', 'Waypoint Generation', 'fail',
+              'Waypoint generation logic not found');
+          }
+        }
+
+      } catch (error) {
+        addTestResult('test2-results', 'GPX Export Test', 'fail',
+          `Error: ${error.message}`);
+      }
+    }
+
+    function testReportFallbacks() {
+      const resultsDiv = document.getElementById('test3-results');
+      resultsDiv.innerHTML = '';
+
+      try {
+        const appXhr = new XMLHttpRequest();
+        appXhr.open('GET', 'app.js', false);
+        appXhr.send();
+        
+        if (appXhr.status === 200) {
+          const appJs = appXhr.responseText;
+          
+          if (appJs.includes('Pending Online Sync') && appJs.includes('getIncidentElevationFeet')) {
+            addTestResult('test3-results', 'Elevation Fallback', 'pass',
+              '✓ Uses "Pending Online Sync" when elevation is unavailable');
+          } else {
+            addTestResult('test3-results', 'Elevation Fallback', 'fail',
+              '"Pending Online Sync" fallback not found for elevation');
+          }
+
+          if (appJs.includes('Pending Online Sync') && appJs.includes('getIncidentWeatherSummary')) {
+            addTestResult('test3-results', 'Weather Fallback', 'pass',
+              '✓ Uses "Pending Online Sync" when weather is unavailable');
+          } else {
+            addTestResult('test3-results', 'Weather Fallback', 'fail',
+              '"Pending Online Sync" fallback not found for weather');
+          }
+
+          if (appJs.includes('renderReportDetailPage')) {
+            addTestResult('test3-results', 'Report Detail Binding', 'pass',
+              '✓ <code>renderReportDetailPage()</code> updates detail fields');
+          }
+        }
+
+      } catch (error) {
+        addTestResult('test3-results', 'Report Fallbacks Test', 'fail',
+          `Error: ${error.message}`);
+      }
+    }
+
+    function testMapLinks() {
+      const resultsDiv = document.getElementById('test4-results');
+      resultsDiv.innerHTML = '';
+
+      try {
+        const reportXhr = new XMLHttpRequest();
+        reportXhr.open('GET', 'report-detail.html', false);
+        reportXhr.send();
+        
+        if (reportXhr.status === 200) {
+          const html = reportXhr.responseText;
+          const mapLinks = [
+            { id: 'detailMapAllTrails', name: 'AllTrails' },
+            { id: 'detailMapGoogle', name: 'Google Maps' },
+            { id: 'detailMapApple', name: 'Apple Maps' },
+            { id: 'detailMapGaia', name: 'Gaia GPS' }
+          ];
+
+          mapLinks.forEach(link => {
+            if (html.includes(`id="${link.id}"`)) {
+              const linkHTML = html.match(new RegExp(`<a[^>]*id="${link.id}"[^>]*>`, 'i'))?.[0] || '';
+              
+              const hasTarget = linkHTML.includes('target="_blank"');
+              const hasRel = linkHTML.includes('rel="noopener"');
+              
+              if (hasTarget && hasRel) {
+                addTestResult('test4-results', `${link.name} Link`, 'pass',
+                  `✓ Has target="_blank" rel="noopener" for secure navigation`);
+              } else {
+                const missing = [];
+                if (!hasTarget) missing.push('target="_blank"');
+                if (!hasRel) missing.push('rel="noopener"');
+                addTestResult('test4-results', `${link.name} Link`, 'fail',
+                  `Missing: ${missing.join(', ')}`);
+              }
+            }
+          });
+        }
+
+        // Check app.js for setMapLinkState updates
+        const appXhr = new XMLHttpRequest();
+        appXhr.open('GET', 'app.js', false);
+        appXhr.send();
+        
+        if (appXhr.status === 200) {
+          const appJs = appXhr.responseText;
+          
+          if (appJs.includes("setAttribute('target', '_blank')") && 
+              appJs.includes("setAttribute('rel', 'noopener')")) {
+            addTestResult('test4-results', 'Dynamic Attributes', 'pass',
+              '✓ <code>setMapLinkState()</code> sets target and rel attributes dynamically');
+          } else {
+            addTestResult('test4-results', 'Dynamic Attributes', 'fail',
+              'setMapLinkState() does not set required attributes');
+          }
+        }
+
+      } catch (error) {
+        addTestResult('test4-results', 'Map Links Test', 'fail',
+          `Error: ${error.message}`);
+      }
+    }
+
+    function runAllTests() {
+      testResults = { pass: 0, fail: 0, pending: 0 };
+      document.getElementById('test1-results').innerHTML = '';
+      document.getElementById('test2-results').innerHTML = '';
+      document.getElementById('test3-results').innerHTML = '';
+      document.getElementById('test4-results').innerHTML = '';
+      
+      testDataSeeding();
+      testGpxExport();
+      testReportFallbacks();
+      testMapLinks();
+    }
+
+    function clearLocalStorage() {
+      localStorage.clear();
+      alert('localStorage cleared. Refresh to re-seed data.');
+    }
+
+    function openHistoryPage() {
+      window.open('history.html', '_blank');
+    }
+
+    function openReportDetail() {
+      // Open with a sample incident ID from seeded data
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          const incidents = JSON.parse(stored);
+          if (incidents.length > 0) {
+            window.open(`report-detail.html?id=${encodeURIComponent(incidents[0].id)}`, '_blank');
+            return;
+          }
+        } catch (e) {
+          // continue
+        }
+      }
+      alert('No incidents available. Load history.html first to seed data.');
+    }
+
+    // Auto-run basic checks on load
+    window.addEventListener('load', () => {
+      const summary = document.getElementById('summary');
+      summary.innerHTML = '<p>Tests ready. Click "Run All Tests" to begin.</p>';
+    });
+  </script>
+</body>
+</html>

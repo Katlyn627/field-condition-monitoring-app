@@ -63,26 +63,12 @@
                   <option value="Wildlife Impact">Wildlife Impact</option>
                 </select>
               </label>
+
+              <button id="exportGpxButton" class="secondary-button" type="button">📍 Export GPX Waypoints</button>
             </div>
           </div>
 
-          <div class="table-responsive table-wrap">
-            <table class="incident-table">
-              <thead>
-                <tr>
-                  <th>Type</th>
-                  <th>Location</th>
-                  <th>Priority</th>
-                  <th>Status</th>
-                  <th>GPS</th>
-                  <th>Date</th>
-                  <th>Photo</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="incidentTableBody"></tbody>
-            </table>
-          </div>
+          <div class="incident-card-list" id="incidentTableBody" aria-live="polite"></div>
         </section>
 
         <section class="panel export-panel">
@@ -97,6 +83,11 @@
           <textarea id="resumeOutput" readonly aria-label="Resume-ready incident bullet list"></textarea>
         </section>
       </main>
+    </div>
+
+    <div id="imageModal" class="image-modal detail-image-modal" aria-modal="true" role="dialog" aria-label="Expanded incident image preview">
+      <button id="closeModalBtn" type="button" class="detail-modal-close" aria-label="Close image preview">×</button>
+      <img id="detailImageModalImg" alt="Expanded incident image preview" />
     </div>
 
     <script src="app.js"></script>

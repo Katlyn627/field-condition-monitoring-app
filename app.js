@@ -5,396 +5,69 @@ const MAP_PREVIEW_SIZE = '640x360';
 
 const sampleLogs = [
   {
-    id: 'sample-1',
+    id: 'ebrpd-erosion-001',
+    title: 'Severe Gully Erosion & Washout',
     type: 'Trail Hazard',
-    location: 'Sunset Trailhead, Tilden Regional Park',
+    location: 'Redwood Regional Park (French Trail, Marker 4.2)',
+    trailName: 'French Trail',
+    mileMarker: '4.2',
+    priority: 'High',
+    status: 'Open',
+    gps: '37.8222, -122.1887',
+    date: '2026-11-04',
+    weather: '58°F Clear',
+    elevationFeet: 1150,
+    photo: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
+    notes: 'Deep erosion cut across trail tread after heavy runoff. Requires 2-person crew, timber water bars, and gravel backfill.'
+  },
+  {
+    id: 'ebrpd-tree-002',
+    title: 'Hazard Tree Blocking Tread',
+    type: 'Trail Hazard',
+    location: 'Tilden Regional Park (Sunset Trail)',
     trailName: 'Sunset Trail',
     mileMarker: '2.1',
     priority: 'High',
-    status: 'Reported to District',
+    status: 'In Progress',
     gps: '37.8966, -122.2484',
-    date: '2026-10-29',
-    photo: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80',
-    notes: 'Rockfall narrowed trail corridor to one-person passage; temporary caution marker installed.'
+    date: '2026-11-03',
+    weather: '62°F Sunny',
+    elevationFeet: 890,
+    photo: 'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1200&q=80',
+    notes: 'Large fallen bay laurel tree across trail tread. Crosscut saw crew scheduled.'
   },
   {
-    id: 'sample-2',
-    type: 'Invasive Species',
-    location: 'North Ridge Trail, Redwood Regional Park',
-    trailName: 'North Ridge Trail',
-    mileMarker: '1.4',
-    priority: 'Medium',
-    status: 'Flagged',
-    gps: '37.8222, -122.1887',
-    date: '2026-10-28',
-    photo: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=900&q=80',
-    notes: 'French broom patch spreading along slope edge; removal team recommended before seed set.'
-  },
-  {
-    id: 'sample-3',
-    type: 'Infrastructure/Trash',
-    location: 'Morrison Canyon, Mt. Diablo State Park',
-    trailName: 'Morrison Canyon Road',
-    mileMarker: '0.8',
-    priority: 'Immediate Safety Hazard',
-    status: 'Reported to District',
-    gps: '37.8819, -121.9188',
-    date: '2026-10-27',
-    photo: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=900&q=80',
-    notes: 'Washout undermined trail shoulder near culvert crossing; access partially blocked.'
-  },
-  {
-    id: 'sample-4',
-    type: 'Wildlife Impact',
-    location: 'Lake Anza Loop, Tilden Regional Park',
-    trailName: 'Lake Anza Trail',
-    mileMarker: '0.6',
-    priority: 'Low',
-    status: 'Resolved',
-    gps: '37.8998, -122.2491',
-    date: '2026-10-26',
-    photo: 'https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&w=900&q=80',
-    notes: 'Shoreline nesting area signed and rerouted; foot traffic compliance improved.'
-  },
-  {
-    id: 'sample-5',
+    id: 'ebrpd-culvert-003',
+    title: 'Culvert Clogged & Water Backing Up',
     type: 'Trail Hazard',
-    location: 'Del Valle South Trailhead, Del Valle Regional Park',
-    trailName: 'East Shore Trail',
-    mileMarker: '2.9',
-    priority: 'High',
-    status: 'Flagged',
-    gps: '37.6042, -121.7001',
-    date: '2026-10-25',
-    photo: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=900&q=80',
-    notes: 'Rutted switchback after weekend rainfall; hikers bypassing onto fragile shoulder.'
-  },
-  {
-    id: 'sample-6',
-    type: 'Infrastructure/Trash',
-    location: 'Sunol Wilderness Visitor Center',
-    trailName: 'Indian Joe Nature Trail',
-    mileMarker: '0.2',
-    priority: 'Medium',
-    status: 'Resolved',
-    gps: '37.5147, -121.8309',
-    date: '2026-10-24',
-    photo: 'https://images.unsplash.com/photo-1470115636492-6d2b56f9146d?auto=format&fit=crop&w=900&q=80',
-    notes: 'Overflowing waste station serviced; replacement signage added for pack-out reminders.'
-  },
-  {
-    id: 'sample-7',
-    type: 'Invasive Species',
-    location: 'Nimitz Way Staging Area, Tilden Regional Park',
-    trailName: 'Nimitz Way',
-    mileMarker: '1.1',
-    priority: 'Medium',
-    status: 'Pending Trail Match',
-    gps: '37.8892, -122.2376',
-    date: '2026-10-23',
-    photo: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80',
-    notes: 'Poison hemlock cluster observed near drainage swale; monitoring markers placed.'
-  },
-  {
-    id: 'sample-8',
-    type: 'Trail Hazard',
-    location: 'Skyline Gate, Redwood Regional Park',
-    trailName: 'West Ridge Trail',
-    mileMarker: '0.9',
-    priority: 'High',
-    status: 'Reported to District',
-    gps: '37.8119, -122.1899',
-    date: '2026-10-22',
-    photo: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=900&q=80',
-    notes: 'Downed eucalyptus limb suspended over trail; flagged for chainsaw crew.'
-  },
-  {
-    id: 'sample-9',
-    type: 'Wildlife Impact',
-    location: 'Briones Bear Creek Trailhead',
-    trailName: 'Bear Creek Trail',
-    mileMarker: '1.7',
-    priority: 'Low',
-    status: 'Flagged',
-    gps: '37.9146, -122.1510',
-    date: '2026-10-21',
-    photo: 'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=900&q=80',
-    notes: 'Seasonal pond crossing used by amphibians; volunteer education signage requested.'
-  },
-  {
-    id: 'sample-10',
-    type: 'Infrastructure/Trash',
-    location: 'Wildcat Canyon Road Pullout',
-    trailName: 'Wildcat Gorge Trail',
-    mileMarker: '3.4',
-    priority: 'Medium',
-    status: 'Resolved',
-    gps: '37.9048, -122.2594',
-    date: '2026-10-20',
-    photo: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=900&q=80',
-    notes: 'Illicit dumping removed (8 bags + lumber scraps); ranger patrol frequency increased.'
-  },
-  {
-    id: 'sample-11',
-    type: 'Trail Hazard',
-    location: 'Las Trampas Bollinger Staging Area',
-    trailName: 'Rocky Ridge View Trail',
-    mileMarker: '2.2',
-    priority: 'Immediate Safety Hazard',
-    status: 'Reported to District',
-    gps: '37.7785, -121.9780',
-    date: '2026-10-19',
-    photo: 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=900&q=80',
-    notes: 'Fence failure at steep slope edge; temporary closure cones placed.'
-  },
-  {
-    id: 'sample-12',
-    type: 'Invasive Species',
-    location: 'Sycamore Valley Trail Junction',
-    trailName: 'Sycamore Valley Trail',
-    mileMarker: '1.0',
-    priority: 'Medium',
-    status: 'Flagged',
-    gps: '37.8324, -121.9908',
-    date: '2026-10-18',
-    photo: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=900&q=80',
-    notes: 'Himalayan blackberry encroachment reducing tread width by roughly 40%.'
-  },
-  {
-    id: 'sample-13',
-    type: 'Wildlife Impact',
-    location: 'Mission Peak Ohlone College Entrance',
-    trailName: 'Peak Meadow Trail',
-    mileMarker: '2.6',
-    priority: 'Low',
-    status: 'Pending Trail Match',
-    gps: '37.5237, -121.8853',
-    date: '2026-10-17',
-    photo: 'https://images.unsplash.com/photo-1501555088652-021faa106b9b?auto=format&fit=crop&w=900&q=80',
-    notes: 'Ground squirrel burrowing near switchback retaining edge; monitor for erosion impacts.'
-  },
-  {
-    id: 'sample-14',
-    type: 'Infrastructure/Trash',
-    location: 'Crown Beach Dune Access',
-    trailName: 'Shoreline Access Path',
-    mileMarker: '0.4',
-    priority: 'Medium',
-    status: 'Flagged',
-    gps: '37.7578, -122.2579',
-    date: '2026-10-16',
-    photo: 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=900&q=80',
-    notes: 'Boardwalk handrail loose on north segment; needs hardware tightening and inspection.'
-  },
-  {
-    id: 'sample-15',
-    type: 'Trail Hazard',
-    location: 'Sibley Volcanic Preserve Round Top',
-    trailName: 'Round Top Loop',
-    mileMarker: '1.9',
-    priority: 'High',
-    status: 'Resolved',
-    gps: '37.8533, -122.1976',
-    date: '2026-10-15',
-    photo: 'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=900&q=80',
-    notes: 'Loose scree section stabilized with brushed drainage channel and hazard marker.'
-  },
-  {
-    id: 'sample-16',
-    type: 'Invasive Species',
-    location: 'Miller/Knox Ferry Point',
-    trailName: 'Bay View Trail',
-    mileMarker: '0.7',
-    priority: 'Low',
-    status: 'Resolved',
-    gps: '37.9270, -122.3790',
-    date: '2026-10-14',
-    photo: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=900&q=80',
-    notes: 'Iceplant patch trimmed back from trail edge; native planting zone protected.'
-  },
-  {
-    id: 'sample-17',
-    type: 'Infrastructure/Trash',
-    location: 'Pleasanton Ridge Foothill Staging',
-    trailName: 'Oak Tree Trail',
-    mileMarker: '3.0',
-    priority: 'High',
-    status: 'Reported to District',
-    gps: '37.6658, -121.8895',
-    date: '2026-10-13',
-    photo: 'https://images.unsplash.com/photo-1472396961693-142e6e269027?auto=format&fit=crop&w=900&q=80',
-    notes: 'Broken cattle-gate latch causing livestock bypass onto trail corridor.'
-  },
-  {
-    id: 'sample-18',
-    type: 'Wildlife Impact',
-    location: 'Anthony Chabot Big Bear Gate',
-    trailName: 'Brandon Trail',
-    mileMarker: '2.4',
-    priority: 'Medium',
-    status: 'Flagged',
-    gps: '37.7726, -122.1132',
-    date: '2026-10-12',
-    photo: 'https://images.unsplash.com/photo-1469122312224-c5846569feb1?auto=format&fit=crop&w=900&q=80',
-    notes: 'Repeated coyote den activity near trail shoulder; advisory sign requested.'
-  },
-  {
-    id: 'sample-19',
-    type: 'Trail Hazard',
-    location: 'Reinhardt Redwood Canyon Gate',
-    trailName: 'Stream Trail',
-    mileMarker: '1.3',
-    priority: 'Medium',
-    status: 'Resolved',
-    gps: '37.8205, -122.1833',
-    date: '2026-10-11',
-    photo: 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=900&q=80',
-    notes: 'Small bridge decking slick with algae; anti-slip treatment applied.'
-  },
-  {
-    id: 'sample-20',
-    type: 'Invasive Species',
-    location: 'Black Diamond Mines Somersville',
-    trailName: 'Chaparral Loop',
-    mileMarker: '2.8',
-    priority: 'High',
-    status: 'Pending Trail Match',
-    gps: '37.9508, -121.8726',
-    date: '2026-10-10',
-    photo: 'https://images.unsplash.com/photo-1482192596544-9eb780fc7f66?auto=format&fit=crop&w=900&q=80',
-    notes: 'Yellow starthistle bloom expanding in old fire scar; treatment window urgent.'
-  },
-  {
-    id: 'sample-21',
-    type: 'Infrastructure/Trash',
-    location: 'Coyote Hills Quarry Staging',
-    trailName: 'Bayview Trail',
-    mileMarker: '0.5',
-    priority: 'Low',
-    status: 'Resolved',
-    gps: '37.5588, -122.0902',
-    date: '2026-10-09',
-    photo: 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?auto=format&fit=crop&w=900&q=80',
-    notes: 'Picnic area litter sweep completed; bins now include wildlife-safe lids.'
-  },
-  {
-    id: 'sample-22',
-    type: 'Wildlife Impact',
-    location: 'Sunol Little Yosemite Trailhead',
-    trailName: 'Little Yosemite Trail',
-    mileMarker: '4.1',
-    priority: 'Medium',
-    status: 'Reported to District',
-    gps: '37.5487, -121.8586',
-    date: '2026-10-08',
-    photo: 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=900&q=80',
-    notes: 'Sensitive riparian corridor trampling observed; rope boundary reinforcement needed.'
-  },
-  {
-    id: 'sample-23',
-    type: 'Trail Hazard',
-    location: 'Briones Alhambra Creek Entrance',
-    trailName: 'Alhambra Creek Trail',
+    location: 'Mt. Diablo State Park (Mitchell Canyon)',
+    trailName: 'Mitchell Canyon Trail',
     mileMarker: '1.6',
-    priority: 'High',
-    status: 'Flagged',
-    gps: '37.9453, -122.1217',
-    date: '2026-10-07',
-    photo: 'https://images.unsplash.com/photo-1482938289607-e9573fc25ebb?auto=format&fit=crop&w=900&q=80',
-    notes: 'Seasonal creek crossing undercut by flow; temporary bypass route marked.'
-  },
-  {
-    id: 'sample-24',
-    type: 'Invasive Species',
-    location: 'Tilden Inspiration Point',
-    trailName: 'Wildcat Peak Trail',
-    mileMarker: '0.7',
-    priority: 'Low',
+    priority: 'Medium',
     status: 'Resolved',
-    gps: '37.9090, -122.2448',
-    date: '2026-10-06',
-    photo: 'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?auto=format&fit=crop&w=900&q=80',
-    notes: 'Pampas grass seedlings removed from overlook edge before root establishment.'
-  },
-  {
-    id: 'sample-25',
-    type: 'Infrastructure/Trash',
-    location: 'Del Valle East Beach Access',
-    trailName: 'Lakeside Trail',
-    mileMarker: '1.2',
-    priority: 'Medium',
-    status: 'Flagged',
-    gps: '37.5964, -121.7095',
-    date: '2026-10-05',
-    photo: 'https://images.unsplash.com/photo-1493244040629-496f6d136cc3?auto=format&fit=crop&w=900&q=80',
-    notes: 'Damaged directional post and graffiti on restroom wall; maintenance ticket opened.'
-  },
-  {
-    id: 'sample-26',
-    type: 'Wildlife Impact',
-    location: 'Redwood Moon Gate',
-    trailName: 'French Trail',
-    mileMarker: '2.3',
-    priority: 'Low',
-    status: 'Resolved',
-    gps: '37.8161, -122.1768',
-    date: '2026-10-04',
-    photo: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=900&q=80',
-    notes: 'Large woodpecker cavity tree fenced from off-trail approach to reduce disturbance.'
-  },
-  {
-    id: 'sample-27',
-    type: 'Trail Hazard',
-    location: 'Mount Diablo Mitchell Canyon',
-    trailName: 'Mitchell Canyon Fire Road',
-    mileMarker: '3.5',
-    priority: 'Immediate Safety Hazard',
-    status: 'Reported to District',
-    gps: '37.9133, -121.9450',
-    date: '2026-10-03',
-    photo: 'https://images.unsplash.com/photo-1418065460487-3e41a6c84dc5?auto=format&fit=crop&w=900&q=80',
-    notes: 'Deep axle-width rut creates fall risk for cyclists descending at speed.'
-  },
-  {
-    id: 'sample-28',
-    type: 'Invasive Species',
-    location: 'Alvarado Staging Area, Wildcat Canyon',
-    trailName: 'Meadows Canyon Trail',
-    mileMarker: '1.5',
-    priority: 'Medium',
-    status: 'Flagged',
-    gps: '37.9638, -122.2873',
-    date: '2026-10-02',
-    photo: 'https://images.unsplash.com/photo-1473116763249-2faaef81ccda?auto=format&fit=crop&w=900&q=80',
-    notes: 'Arundo donax stand expanding along channel bank; notify restoration team.'
-  },
-  {
-    id: 'sample-29',
-    type: 'Infrastructure/Trash',
-    location: 'Carquinez Strait Staging',
-    trailName: 'Franklin Ridge Trail',
-    mileMarker: '0.9',
-    priority: 'High',
-    status: 'Pending Trail Match',
-    gps: '38.0180, -122.1979',
-    date: '2026-10-01',
-    photo: 'https://images.unsplash.com/photo-1455218873509-8097305ee378?auto=format&fit=crop&w=900&q=80',
-    notes: 'Trail railing segment detached near bluff edge; temporary tape line installed.'
-  },
-  {
-    id: 'sample-30',
-    type: 'Wildlife Impact',
-    location: 'Point Pinole Giant Highway',
-    trailName: 'Bay Trail Spur',
-    mileMarker: '2.0',
-    priority: 'Medium',
-    status: 'Reported to District',
-    gps: '37.9959, -122.3593',
-    date: '2026-09-30',
-    photo: 'https://images.unsplash.com/photo-1429087969512-1e85aab2683d?auto=format&fit=crop&w=900&q=80',
-    notes: 'Shorebird congregation near tidal flats requires short-term leash enforcement signage.'
+    gps: '37.8819, -121.9188',
+    date: '2026-11-01',
+    weather: '55°F Overcast',
+    elevationFeet: 1420,
+    photo: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80',
+    notes: 'Cleared debris blockage from 18-inch corrugated pipe culvert.'
   }
 ];
+
+function seedInitialIncidents() {
+  const defaultIncidents = sampleLogs.map((incident) => ({ ...incident }));
+
+  try {
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultIncidents));
+      localStorage.setItem(SAMPLE_VERSION_KEY, String(SEEDED_SAMPLE_VERSION));
+    }
+  } catch (error) {
+    console.warn('Could not seed local data store:', error);
+  }
+
+  return defaultIncidents;
+}
 
 function renderIncidentPhotoCell(incident, safePhotoAlt) {
   const photoMeta = deriveLocationMatchedPhoto(incident);
@@ -1023,7 +696,7 @@ function toRadians(value) {
 }
 
 function loadIncidents() {
-  const normalizedSamples = sampleLogs.map(normalizeIncident);
+  const normalizedSamples = seedInitialIncidents().map(normalizeIncident);
 
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -1072,6 +745,7 @@ function normalizeIncident(rawIncident = {}) {
 
   const normalized = {
     id: String(rawIncident.id || `incident-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`),
+    title: String(rawIncident.title || rawIncident.name || '').trim(),
     type: String(rawIncident.type || 'Trail Hazard'),
     location: String(rawIncident.location || '').trim(),
     trailName: String(rawIncident.trailName || '').trim(),
@@ -1441,62 +1115,94 @@ function renderTable() {
   });
 
   if (!filtered.length) {
-    tableBody.innerHTML = '<tr><td colspan="8" class="empty-state">No incidents match the current filters.</td></tr>';
+    tableBody.innerHTML = '<div class="incident-empty-state">No incidents match the current filters.</div>';
     return;
   }
 
   tableBody.innerHTML = filtered
-    .map((incident) => {
-      const safeLocation = escapeHtml(incident.location || '—');
-      const safeType = escapeHtml(incident.type);
-      const safePriority = escapeHtml(incident.priority);
-      const safeStatus = escapeHtml(incident.status);
-      const safeGps = escapeHtml(incident.gps || '—');
-      const safeDate = escapeHtml(formatDate(incident.date));
-      const safePhotoAlt = escapeHtml(`${incident.location || incident.type} photo`);
-      const coordinates = parseGpsCoordinates(incident.gps);
-      const photoCell = renderIncidentPhotoCell(incident, safePhotoAlt);
-
-      const trailMeta = renderTrailMeta(incident);
-      const externalMapActions = renderExternalMapActions(incident, coordinates);
-      const isEditing = state.editingIncidentId === incident.id;
-      const editPanel = isEditing ? renderInlineEditForm(incident) : '';
-
-      const priorityClass = toPriorityClass(incident.priority);
-      const statusClass = toStatusClass(incident.status);
-      const actionLabel = incident.status === 'Resolved' ? 'Reopen' : 'Resolve';
-      const typeCell = renderTableCell('Type', `<span class="badge ${toTypeClass(incident.type)}">${safeType}</span>`);
-      const locationCell = renderTableCell('Location', `${safeLocation}${trailMeta}`);
-      const priorityCell = renderTableCell('Priority', `<span class="badge ${priorityClass}">${safePriority}</span>`);
-      const statusCell = renderTableCell('Status', `<span class="badge ${statusClass}">${safeStatus}</span>`);
-      const gpsCell = renderTableCell('GPS', safeGps);
-      const dateCell = renderTableCell('Date', safeDate);
-      const photoCellMarkup = renderTableCell('Photo', photoCell);
-      const actionsCell = renderTableCell('Actions', `
-        <div class="actions">
-          <a href="report-detail.html?id=${encodeURIComponent(incident.id)}" class="btn-detail">View Full Report</a>
-          ${externalMapActions}
-          <button class="table-button" data-action="edit-match" data-id="${escapeAttribute(incident.id)}">Update Location / Match Trail</button>
-          <button class="table-button toggle-btn" data-action="toggle" data-id="${escapeAttribute(incident.id)}">${actionLabel}</button>
-          <button class="table-button remove-btn" data-action="remove" data-id="${escapeAttribute(incident.id)}">Remove</button>
-          ${editPanel}
-        </div>
-      `);
-
-      return `
-        <tr>
-          ${typeCell}
-          ${locationCell}
-          ${priorityCell}
-          ${statusCell}
-          ${gpsCell}
-          ${dateCell}
-          ${photoCellMarkup}
-          ${actionsCell}
-        </tr>
-      `;
-    })
+    .map((incident) => renderIncidentCard(incident))
     .join('');
+}
+
+function renderIncidentCard(incident) {
+  const coordinates = parseGpsCoordinates(incident.gps);
+  const photoMeta = deriveLocationMatchedPhoto(incident);
+  const photoSource = photoMeta.url || '';
+  const priorityClass = toPriorityClass(incident.priority);
+  const statusClass = toStatusClass(incident.status);
+  const safeId = escapeAttribute(incident.id);
+  const safeTitle = escapeHtml(incident.title || incident.location || incident.trailName || 'Field report');
+  const safePriority = escapeHtml(incident.priority || 'Medium');
+  const safeStatus = escapeHtml(incident.status || 'Open');
+  const safeNotes = escapeHtml(incident.notes || 'No notes recorded for this report.');
+  const safeTrailName = escapeHtml(incident.trailName || '—');
+  const safeParkName = escapeHtml(incident.location || '—');
+  const safeCoordinates = coordinates ? `${Number(coordinates.latitude).toFixed(4)}, ${Number(coordinates.longitude).toFixed(4)}` : 'Unavailable';
+  const elevationFeet = getIncidentElevationFeet(incident);
+  const formattedGps = coordinates && Number.isFinite(elevationFeet) ? `GPS: ${safeCoordinates} (Elevation: ${Math.round(elevationFeet).toLocaleString()} ft)` : `GPS: ${safeCoordinates}`;
+  const nearestTrailhead = deriveNearestTrailheadName(incident, coordinates);
+  const mapActions = renderExternalMapActions(incident, coordinates);
+  const isEditing = state.editingIncidentId === incident.id;
+  const editPanel = isEditing ? renderInlineEditForm(incident) : '';
+  const actionLabel = incident.status === 'Resolved' ? 'Reopen' : 'Resolve';
+
+  return `
+    <article class="incident-card" data-id="${safeId}">
+      <div class="incident-card-header">
+        <div class="incident-header-copy">
+          <h3>${safeTitle}</h3>
+        </div>
+        <div class="incident-badges">
+          <span class="badge ${priorityClass}">${safePriority}</span>
+          <span class="badge ${statusClass}">${safeStatus}</span>
+        </div>
+      </div>
+
+      ${photoSource ? `
+        <button type="button" class="incident-photo-button" data-action="preview-photo" data-id="${safeId}" data-photo="${escapeAttribute(photoSource)}" aria-label="Open photo for ${safeTitle}">
+          <img src="${escapeAttribute(photoSource)}" alt="${escapeHtml(`${incident.location || incident.type} field photo`) }" class="incident-card-photo" loading="lazy" />
+        </button>
+      ` : '<div class="incident-photo-placeholder">No photo attached</div>'}
+
+      <div class="incident-card-body">
+        <div class="incident-detail-group">
+          <span class="detail-field-label">Park</span>
+          <p>${safeParkName}</p>
+        </div>
+
+        <div class="incident-detail-group">
+          <span class="detail-field-label">Nearest trailhead</span>
+          <p>${escapeHtml(nearestTrailhead || 'Unavailable')}</p>
+        </div>
+
+        <div class="incident-detail-group">
+          <span class="detail-field-label">Trail</span>
+          <p>${safeTrailName}</p>
+        </div>
+
+        <div class="incident-detail-group gps-detail-group">
+          <span class="detail-field-label">GPS</span>
+          <p>${escapeHtml(formattedGps)}</p>
+        </div>
+
+        <div class="incident-detail-group">
+          <span class="detail-field-label">Notes</span>
+          <p class="incident-notes">${safeNotes}</p>
+        </div>
+
+        ${mapActions}
+
+        <div class="incident-card-actions">
+          <a href="report-detail.html?id=${encodeURIComponent(incident.id)}" class="primary-button card-primary-button">🔍 View Detailed Report</a>
+          <button class="table-button" type="button" data-action="edit-match" data-id="${safeId}">Update Location / Match Trail</button>
+          <button class="table-button toggle-btn" type="button" data-action="toggle" data-id="${safeId}">${actionLabel}</button>
+          <button class="table-button remove-btn" type="button" data-action="remove" data-id="${safeId}">Remove</button>
+        </div>
+
+        ${editPanel}
+      </div>
+    </article>
+  `;
 }
 
 function renderTableCell(label, content) {
@@ -1531,11 +1237,11 @@ function renderExternalMapActions(incident, coordinates) {
 
   return `
     <div class="external-map-group">
-      <span class="external-map-label">Open in External Maps</span>
-      <div class="map-btn-group external-map-actions">
-        <button class="table-button" data-action="open-alltrails" data-id="${safeId}">AllTrails Search</button>
+      <span class="external-map-label">🗺️ Open in External Maps</span>
+      <div class="map-btn-group external-map-actions map-btn-grid">
+        <button class="table-button" data-action="open-alltrails" data-id="${safeId}">AllTrails</button>
         <button class="table-button" data-action="open-google" data-id="${safeId}"${disabledAttr}${unavailableTitle}>Google Maps</button>
-        <button class="table-button" data-action="open-apple" data-id="${safeId}"${disabledAttr}${unavailableTitle}>Apple / Geo</button>
+        <button class="table-button" data-action="open-apple" data-id="${safeId}"${disabledAttr}${unavailableTitle}>Apple Maps</button>
         <button class="table-button" data-action="open-gaia" data-id="${safeId}"${disabledAttr}${unavailableTitle}>Gaia GPS</button>
       </div>
     </div>
@@ -1626,6 +1332,14 @@ function handleTableAction(event) {
 
   const incident = state.incidents[incidentIndex];
 
+  if (action === 'preview-photo') {
+    const photoSource = target.dataset.photo || '';
+    if (photoSource) {
+      openDetailImageModal(photoSource);
+    }
+    return;
+  }
+
   if (action === 'open-alltrails' || action === 'open-google' || action === 'open-apple' || action === 'open-gaia') {
     openExternalMapForIncident(action, incident);
     return;
@@ -1701,7 +1415,7 @@ function getGaiaGpsDeepLink(latitude, longitude) {
 }
 
 function attachReportDetailEventListeners() {
-  if (page !== 'report-detail') return;
+  if (page !== 'report-detail' && page !== 'history') return;
 
   const actionLogForm = document.getElementById('actionLogForm');
   const gallery = document.getElementById('detailPhotoContainer');
@@ -1727,12 +1441,6 @@ function attachReportDetailEventListeners() {
   if (modalCloseButton) {
     modalCloseButton.addEventListener('click', closeDetailImageModal);
   }
-
-  document.getElementById('closeModalBtn')?.addEventListener('click', () => {
-    const imageModal = document.getElementById('imageModal');
-    imageModal?.classList.remove('active');
-    imageModal && (imageModal.hidden = true);
-  });
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
@@ -1788,7 +1496,7 @@ function renderReportDetailPage() {
   const followUpStatus = document.getElementById('followUpSaveStatus');
 
   if (incidentTitle) {
-    const typeLabel = incident.type ? `${incident.type}` : 'Incident';
+    const typeLabel = incident.title || incident.type || 'Incident';
     incidentTitle.textContent = `${typeLabel} Report`;
   }
 
@@ -1829,15 +1537,25 @@ function renderReportDetailPage() {
   }
 
   if (coordinatesLabel) {
-    coordinatesLabel.textContent = coordinates ? `${coordinates.latitude.toFixed(6)}, ${coordinates.longitude.toFixed(6)}` : 'Unavailable';
+    coordinatesLabel.textContent = coordinates ? `${Number(coordinates.latitude).toFixed(4)}, ${Number(coordinates.longitude).toFixed(4)}` : 'Unavailable';
   }
 
   if (elevationLabel) {
-    elevationLabel.textContent = Number.isFinite(elevationFeet) ? `${Math.round(elevationFeet).toLocaleString()} ft` : 'Unavailable';
+    const elevationFeetValue = getIncidentElevationFeet(incident);
+    if (Number.isFinite(elevationFeetValue)) {
+      elevationLabel.textContent = `${Math.round(elevationFeetValue).toLocaleString()} ft`;
+    } else {
+      elevationLabel.textContent = 'Pending Online Sync';
+    }
   }
 
   if (weatherLabel) {
-    weatherLabel.textContent = weatherSummary || 'Unavailable';
+    const weatherSummaryValue = getIncidentWeatherSummary(incident);
+    if (weatherSummaryValue) {
+      weatherLabel.textContent = weatherSummaryValue;
+    } else {
+      weatherLabel.textContent = 'Pending Online Sync';
+    }
   }
 
   if (notesArea) {
@@ -1958,12 +1676,37 @@ function renderReportMapLinks(incident, coordinates) {
   const gaiaMapsLink = document.getElementById('detailMapGaia');
 
   if (allTrailsLink) {
-    allTrailsLink.href = getAllTrailsDeepLink(incident, coordinates);
+    const href = getAllTrailsDeepLink(incident, coordinates);
+    allTrailsLink.href = href;
+    allTrailsLink.setAttribute('target', '_blank');
+    allTrailsLink.setAttribute('rel', 'noopener');
   }
 
-  setMapLinkState(googleMapsLink, coordinates ? getGoogleMapsDeepLink(coordinates.latitude, coordinates.longitude) : '');
-  setMapLinkState(appleMapsLink, coordinates ? getGeoDeepLink(coordinates.latitude, coordinates.longitude) : '');
-  setMapLinkState(gaiaMapsLink, coordinates ? getGaiaGpsDeepLink(coordinates.latitude, coordinates.longitude) : '');
+  if (googleMapsLink) {
+    const href = coordinates ? getGoogleMapsDeepLink(coordinates.latitude, coordinates.longitude) : '';
+    setMapLinkState(googleMapsLink, href);
+  }
+
+  if (appleMapsLink) {
+    const href = coordinates ? getGeoDeepLink(coordinates.latitude, coordinates.longitude) : '';
+    if (href) {
+      appleMapsLink.href = href;
+      appleMapsLink.setAttribute('target', '_blank');
+      appleMapsLink.setAttribute('rel', 'noopener');
+      appleMapsLink.removeAttribute('aria-disabled');
+      appleMapsLink.classList.remove('disabled-link');
+    } else {
+      appleMapsLink.removeAttribute('href');
+      appleMapsLink.setAttribute('aria-disabled', 'true');
+      appleMapsLink.classList.add('disabled-link');
+    }
+    return;
+  }
+
+  if (gaiaMapsLink) {
+    const href = coordinates ? getGaiaGpsDeepLink(coordinates.latitude, coordinates.longitude) : '';
+    setMapLinkState(gaiaMapsLink, href);
+  }
 }
 
 function setMapLinkState(element, href) {
@@ -1977,6 +1720,8 @@ function setMapLinkState(element, href) {
   }
 
   element.href = href;
+  element.setAttribute('target', '_blank');
+  element.setAttribute('rel', 'noopener');
   element.removeAttribute('aria-disabled');
   element.classList.remove('disabled-link');
 }
@@ -2051,6 +1796,17 @@ function handleGalleryImageOpen(event) {
   const modal = document.getElementById('imageModal') || document.getElementById('detailImageModal');
   const modalImage = document.getElementById('detailImageModalImg');
   if (!modal || !modalImage) return;
+
+  modalImage.src = source;
+  modal.classList.add('active');
+  modal.hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
+function openDetailImageModal(source) {
+  const modal = document.getElementById('imageModal') || document.getElementById('detailImageModal');
+  const modalImage = document.getElementById('detailImageModalImg');
+  if (!modal || !modalImage || !source) return;
 
   modalImage.src = source;
   modal.classList.add('active');
