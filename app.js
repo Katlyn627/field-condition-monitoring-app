@@ -1477,7 +1477,7 @@ function renderExternalMapActions(incident, coordinates) {
   return `
     <div class="external-map-group">
       <span class="external-map-label">Open in External Maps</span>
-      <div class="external-map-actions">
+      <div class="map-btn-group external-map-actions">
         <button class="table-button" data-action="open-alltrails" data-id="${safeId}">AllTrails Search</button>
         <button class="table-button" data-action="open-google" data-id="${safeId}"${disabledAttr}${unavailableTitle}>Google Maps</button>
         <button class="table-button" data-action="open-apple" data-id="${safeId}"${disabledAttr}${unavailableTitle}>Apple / Geo</button>

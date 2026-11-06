@@ -52,6 +52,17 @@ textarea {
   font: inherit;
 }
 
+.app-shell,
+.dashboard,
+.form-container,
+.log-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  overflow-x: hidden;
+}
+
 .app-shell {
   width: 100%;
   max-width: 1200px;
@@ -864,8 +875,15 @@ button:focus-visible {
   min-width: 0;
 }
 
+.table-wrap,
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .table-wrap {
-  overflow-x: visible;
+  overflow-x: auto;
 }
 
 table,
@@ -1207,38 +1225,45 @@ tbody td::before {
     gap: 12px;
   }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 0;
+  table.incident-table {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: auto !important;
   }
 
-  table,
-  thead,
-  tbody,
-  th,
-  td,
-  tr {
-    display: revert;
+  table.incident-table thead {
+    display: table-header-group !important;
   }
 
-  thead {
-    display: table-header-group;
+  table.incident-table tbody {
+    display: table-row-group !important;
   }
 
-  tbody {
-    display: table-row-group;
+  table.incident-table tr {
+    display: table-row !important;
+    border-bottom: 1px solid #e2e8f0;
   }
 
-  tbody tr {
-    display: table-row;
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    padding: 0;
+  table.incident-table th,
+  table.incident-table td {
+    display: table-cell !important;
+    padding: 12px 10px !important;
+    vertical-align: middle !important;
+    text-align: left !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    writing-mode: horizontal-tb !important;
   }
 
-  thead th {
+  .map-btn-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    min-width: 180px;
+  }
+
+  table.incident-table thead th {
     font-size: 0.74rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -1249,13 +1274,13 @@ tbody td::before {
     border-bottom: 1px solid rgba(28, 66, 56, 0.09);
   }
 
-  tbody td {
+  table.incident-table tbody td {
     padding: 12px 10px;
     border-bottom: 1px solid rgba(28, 66, 56, 0.08);
     vertical-align: middle;
   }
 
-  tbody td::before {
+  table.incident-table tbody td::before {
     display: none;
   }
 
@@ -1276,5 +1301,55 @@ tbody td::before {
     min-height: 48px;
     padding: 8px 10px;
     font-size: 0.74rem;
+  }
+}
+
+@media (max-width: 767px) {
+  table.incident-table,
+  table.incident-table thead,
+  table.incident-table tbody,
+  table.incident-table th,
+  table.incident-table td,
+  table.incident-table tr {
+    display: block !important;
+  }
+
+  table.incident-table thead {
+    display: none !important;
+  }
+
+  table.incident-table tr {
+    margin-bottom: 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 14px;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+
+  table.incident-table td {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 0 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    text-align: right !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  table.incident-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #334155;
+    text-align: left;
+    padding-right: 12px;
+  }
+
+  table.incident-table td:last-child {
+    border-bottom: none !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
   }
 }
