@@ -10,6 +10,10 @@
     <title>Report Detail | East Bay Trail & Field Condition Tracker</title>
     <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="styles.css" />
+    <!-- Firebase SDK v10 (Auth + Firestore) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js"></script>
   </head>
   <body data-page="report-detail">
     <div class="app-shell">
@@ -31,6 +35,9 @@
           <a href="log.html" class="nav-link">New Entry</a>
           <a href="history.html" class="nav-link active">History Log</a>
         </nav>
+        <div class="header-pill" id="userAuthPill" aria-live="polite">
+          <button class="login-btn" onclick="showLoginModal()">Sign In</button>
+        </div>
         <a href="history.html" class="secondary-button back-link">← Back</a>
       </header>
 
@@ -146,6 +153,88 @@
       <img id="detailImageModalImg" class="report-detail-photo report-photo-preview" alt="Expanded report image preview" />
     </div>
 
+    <!-- Auth Modal -->
+    <div id="authModal" class="auth-modal-overlay" hidden aria-hidden="true" aria-modal="true" role="dialog" aria-labelledby="authModalTitle">
+      <div class="auth-modal-dialog">
+        <div class="auth-modal-header">
+          <h2 id="authModalTitle">Sign In to EBRPD Cloud Sync</h2>
+          <button class="auth-modal-close" onclick="hideLoginModal()" aria-label="Close">✕</button>
+        </div>
+        
+        <div class="auth-modal-content">
+          <p class="auth-intro">
+            📡 Sign in to sync your field reports to the EBRPD cloud system. Your reports are always saved locally, but cloud sync enables seamless data sharing across your team.
+          </p>
+          
+          <form id="authForm" data-mode="login" onsubmit="handleLogin(event)">
+            <div class="form-field">
+              <label for="loginEmail">Email Address</label>
+              <input 
+                type="email" 
+                id="loginEmail" 
+                placeholder="ranger@ebrpd.org" 
+                required 
+                aria-required="true"
+              />
+            </div>
+            
+            <div class="form-field">
+              <label for="loginPassword">Password</label>
+              <input 
+                type="password" 
+                id="loginPassword" 
+                placeholder="••••••••" 
+                required 
+                aria-required="true"
+              />
+            </div>
+            
+            <div class="form-field" id="registerNameField" style="display: none;">
+              <label for="registerName">Ranger Name</label>
+              <input 
+                type="text" 
+                id="registerName" 
+                placeholder="First Last" 
+                aria-required="true"
+              />
+            </div>
+            
+            <div class="form-field" id="registerBadgeIdField" style="display: none;">
+              <label for="registerBadgeId">Badge ID</label>
+              <input 
+                type="text" 
+                id="registerBadgeId" 
+                placeholder="EBRPD-842" 
+                pattern="EBRPD-\d{1,4}" 
+                title="Format: EBRPD-#### (e.g., EBRPD-842)"
+                aria-required="true"
+              />
+            </div>
+            
+            <button type="submit" class="primary-button auth-submit-btn" style="width: 100%;">
+              Sign In
+            </button>
+          </form>
+          
+          <button 
+            class="auth-form-toggle" 
+            id="authFormToggle" 
+            onclick="toggleAuthForm()"
+          >
+            New ranger? Register
+          </button>
+        </div>
+        
+        <div class="auth-modal-footer">
+          <p class="auth-note">
+            💡 Reports saved offline are always available. Cloud sync requires an active internet connection.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Firebase Configuration & Auth -->
+    <script src="firebase-config.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

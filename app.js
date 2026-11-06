@@ -828,6 +828,64 @@ function normalizeIncidentCreatedAt(rawCreatedAt, rawDate) {
 
 function persistIncidents() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.incidents));
+  // Attempt cloud sync for newly added incidents
+  syncLatestIncidentToCloud();
+}
+
+/**
+ * Helper to get stored incidents from localStorage
+ */
+function getStoredIncidents() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Sync latest incident to Firestore (called after save)
+ */
+async function syncLatestIncidentToCloud() {
+  if (!navigator.onLine || !currentUser || typeof saveIncidentHybrid !== 'function') {
+    // Not ready for cloud sync yet
+    return;
+  }
+  
+  try {
+    const incidents = getStoredIncidents();
+    if (incidents.length > 0) {
+      const latest = incidents[0]; // Most recently added
+      if (!latest.syncedToCloud) {
+        await saveIncidentHybrid(latest);
+      }
+    }
+  } catch (error) {
+    console.warn('Error syncing incident to cloud:', error);
+  }
+}
+
+/**
+ * Override persistIncidents to support hybrid sync
+ * This wrapper handles both local and cloud storage
+ */
+async function persistIncidentsWithCloudSync(incident) {
+  if (!incident) {
+    persistIncidents();
+    return;
+  }
+  
+  // For hybrid offline-first: always save to localStorage first
+  persistIncidents();
+  
+  // Then attempt cloud sync if conditions are met
+  if (navigator.onLine && currentUser && typeof saveIncidentHybrid === 'function') {
+    try {
+      await saveIncidentHybrid(incident);
+    } catch (error) {
+      console.warn('Cloud sync queued for later:', error);
+    }
+  }
 }
 
 function renderDashboard() {

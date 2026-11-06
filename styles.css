@@ -1988,3 +1988,342 @@ button:focus-visible {
     gap: 8px !important;
   }
 }
+
+/* ============================================================================
+   AUTH MODAL & FIREBASE INTEGRATION
+   ============================================================================ */
+
+.auth-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  padding: 16px;
+}
+
+.auth-modal-overlay[hidden] {
+  display: none;
+}
+
+.auth-modal-dialog {
+  background: var(--surface-card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 420px;
+  width: 100%;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.auth-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.auth-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.auth-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--text-sub);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.auth-modal-close:hover {
+  background: var(--bg-main);
+  color: var(--text-dark);
+}
+
+.auth-modal-close:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.auth-modal-content {
+  padding: 24px;
+}
+
+.auth-intro {
+  font-size: 14px;
+  color: var(--text-sub);
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.form-field {
+  margin-bottom: 16px;
+}
+
+.form-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-field input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--bg-main);
+  color: var(--text-dark);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-field input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface-card);
+  box-shadow: 0 0 0 3px rgba(30, 58, 30, 0.1);
+}
+
+.form-field input::placeholder {
+  color: var(--text-sub);
+}
+
+.auth-submit-btn {
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.auth-form-toggle {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 12px 0;
+  text-align: center;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.auth-form-toggle:hover {
+  color: var(--primary-hover);
+}
+
+.auth-form-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.auth-modal-footer {
+  padding: 16px 24px 24px;
+  border-top: 1px solid var(--border);
+}
+
+.auth-note {
+  font-size: 12px;
+  color: var(--text-sub);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* User Profile Badge in Header */
+#userAuthPill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--bg-main);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+#userAuthPill.logged-in {
+  background: linear-gradient(135deg, rgba(45, 90, 39, 0.1), rgba(217, 119, 6, 0.05));
+  border: 1px solid var(--primary-light);
+}
+
+.user-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.user-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-name {
+  color: var(--text-dark);
+  font-weight: 600;
+  display: block;
+}
+
+.user-badge-id {
+  color: var(--text-sub);
+  font-size: 11px;
+  font-weight: 500;
+  display: block;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: var(--text-sub);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.logout-btn:hover {
+  background: rgba(217, 119, 6, 0.1);
+  color: var(--accent);
+}
+
+.logout-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.login-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.login-btn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.login-btn:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
+
+/* Secondary offline/online status pill */
+.header-pill.secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.header-pill.secondary .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.header-pill.secondary .status-dot.offline {
+  background: #ef4444;
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive auth modal */
+@media (max-width: 599px) {
+  .auth-modal-dialog {
+    max-width: 100%;
+    border-radius: 12px;
+  }
+  
+  .auth-modal-header {
+    padding: 20px;
+  }
+  
+  .auth-modal-content {
+    padding: 20px;
+  }
+  
+  .auth-modal-footer {
+    padding: 16px 20px 20px;
+  }
+  
+  #userAuthPill {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  
+  .user-initials {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+}
