@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'east-bay-condition-tracker';
 const SEEDED_SAMPLE_VERSION = 2;
 const SAMPLE_VERSION_KEY = `${STORAGE_KEY}-sample-version`;
+const MAP_PREVIEW_SIZE = '640x360';
 
 const sampleLogs = [
   {
@@ -394,6 +395,86 @@ const sampleLogs = [
     notes: 'Shorebird congregation near tidal flats requires short-term leash enforcement signage.'
   }
 ];
+
+function renderIncidentPhotoCell(incident, safePhotoAlt) {
+  const photoMeta = deriveLocationMatchedPhoto(incident);
+  if (!photoMeta.url) {
+    return '<span class="empty-state">None</span>';
+  }
+
+  const safePhotoUrl = escapeAttribute(photoMeta.url);
+  const safeSource = escapeHtml(photoMeta.sourceLabel);
+  const safeFallbackPhoto = escapeAttribute(photoMeta.fallbackUrl || '');
+  const onErrorHandler = safeFallbackPhoto
+    ? ` onerror="this.onerror=null;this.src='${safeFallbackPhoto}'"`
+    : '';
+
+  return `
+    <div class="photo-thumb-wrap">
+      <img class="photo-thumb" src="${safePhotoUrl}" alt="${safePhotoAlt}"${onErrorHandler} />
+      <span class="photo-source">${safeSource}</span>
+    </div>
+  `;
+}
+
+function deriveLocationMatchedPhoto(incident) {
+  const sanitizedPhoto = sanitizeImageUrl(incident.photo || '');
+  const coordinates = parseGpsCoordinates(incident.gps);
+  const isSeededIncident = String(incident.id || '').startsWith('sample-');
+  const isDataUpload = sanitizedPhoto.startsWith('data:image/');
+  const isGoogleUploadedImage = sanitizedPhoto.includes('googleusercontent.com');
+
+  if ((isDataUpload || isGoogleUploadedImage) && sanitizedPhoto) {
+    return {
+      url: sanitizedPhoto,
+      fallbackUrl: '',
+      sourceLabel: 'Uploaded image'
+    };
+  }
+
+  if (coordinates) {
+    if (!isSeededIncident && sanitizedPhoto) {
+      return {
+        url: sanitizedPhoto,
+        fallbackUrl: buildOpenStreetMapPreviewUrl(coordinates.latitude, coordinates.longitude),
+        sourceLabel: 'Custom image'
+      };
+    }
+
+    return {
+      url: buildGoogleMapsPreviewUrl(coordinates.latitude, coordinates.longitude),
+      fallbackUrl: buildOpenStreetMapPreviewUrl(coordinates.latitude, coordinates.longitude),
+      sourceLabel: 'GPS map preview'
+    };
+  }
+
+  if (sanitizedPhoto) {
+    return {
+      url: sanitizedPhoto,
+      fallbackUrl: '',
+      sourceLabel: 'Reference image'
+    };
+  }
+
+  return {
+    url: '',
+    fallbackUrl: '',
+    sourceLabel: ''
+  };
+}
+
+function buildGoogleMapsPreviewUrl(latitude, longitude) {
+  const lat = Number(latitude).toFixed(6);
+  const lng = Number(longitude).toFixed(6);
+  const marker = `${lat},${lng}`;
+  return `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=14&size=${MAP_PREVIEW_SIZE}&maptype=terrain&markers=color:red%7C${encodeURIComponent(marker)}`;
+}
+
+function buildOpenStreetMapPreviewUrl(latitude, longitude) {
+  const lat = Number(latitude).toFixed(6);
+  const lng = Number(longitude).toFixed(6);
+  return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=14&size=${MAP_PREVIEW_SIZE}&markers=${lat},${lng},red-pushpin`;
+}
 
 const form = document.getElementById('incidentForm');
 const tableBody = document.getElementById('incidentTableBody');
@@ -926,6 +1007,11 @@ function normalizeIncident(rawIncident = {}) {
     normalized.location = normalized.trailName;
   }
 
+  const displayPhoto = deriveLocationMatchedPhoto(normalized);
+  if (displayPhoto.url) {
+    normalized.photo = displayPhoto.url;
+  }
+
   return normalized;
 }
 
@@ -1027,17 +1113,23 @@ function renderHeroData(metrics) {
     } else {
       heroPhotoCards.innerHTML = photoIncidents
         .map((incident) => {
-          const safePhoto = escapeAttribute(sanitizeImageUrl(incident.photo));
+          const photoMeta = deriveLocationMatchedPhoto(incident);
+          const safePhoto = escapeAttribute(photoMeta.url);
+          const safeFallbackPhoto = escapeAttribute(photoMeta.fallbackUrl || '');
           const safeAlt = escapeAttribute(`${incident.location || incident.type} photo`);
           const safeLocation = escapeHtml(incident.location || 'Unlabeled location');
           const safeDate = escapeHtml(formatDate(incident.date));
+          const safeSource = escapeHtml(photoMeta.sourceLabel);
+          const onErrorHandler = safeFallbackPhoto
+            ? ` onerror="this.onerror=null;this.src='${safeFallbackPhoto}'"`
+            : '';
 
           return `
             <article class="hero-photo-item">
-              <img src="${safePhoto}" alt="${safeAlt}" />
+              <img src="${safePhoto}" alt="${safeAlt}"${onErrorHandler} />
               <div class="hero-photo-meta">
                 <strong>${safeLocation}</strong>
-                <span>${safeDate}</span>
+                <span>${safeDate} • ${safeSource}</span>
               </div>
             </article>
           `;
@@ -1226,9 +1318,7 @@ function renderTable() {
       const safeDate = escapeHtml(formatDate(incident.date));
       const safePhotoAlt = escapeHtml(`${incident.location || incident.type} photo`);
       const coordinates = parseGpsCoordinates(incident.gps);
-      const photoCell = incident.photo
-        ? `<img class="photo-thumb" src="${escapeAttribute(incident.photo)}" alt="${safePhotoAlt}" />`
-        : '<span class="empty-state">None</span>';
+      const photoCell = renderIncidentPhotoCell(incident, safePhotoAlt);
 
       const trailMeta = renderTrailMeta(incident);
       const externalMapActions = renderExternalMapActions(incident, coordinates);

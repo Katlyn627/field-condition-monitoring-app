@@ -967,6 +967,20 @@ tbody td::before {
   border: 1px solid rgba(28, 66, 56, 0.12);
 }
 
+.photo-thumb-wrap {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+
+.photo-source {
+  font-size: 0.68rem;
+  color: var(--muted);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
 .empty-state {
   color: var(--muted);
   font-style: italic;
