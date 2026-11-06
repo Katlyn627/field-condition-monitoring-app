@@ -35,7 +35,7 @@
             <circle cx="19" cy="19" r="4" fill="#f3efe2"></circle>
           </svg>
           <p class="eyebrow">East Bay Regional Park Stewardship</p>
-          <h1>Field & Trail Condition Tracker</h1>
+          <p class="brand-title">Field & Trail Condition Tracker</p>
         </div>
         <div class="header-actions">
           <nav class="main-nav" aria-label="Main navigation">
@@ -50,40 +50,21 @@
         </div>
       </header>
 
-      <section class="panel home-hero" aria-label="Operational overview">
+      <section class="panel home-hero clean-hero" aria-label="Homepage hero">
         <div class="hero-copy">
-          <p class="section-kicker">Field operations overview</p>
-          <h2>Track trail conditions before small issues become larger maintenance problems.</h2>
+          <svg class="hero-badge-logo" viewBox="0 0 64 64" role="img" aria-label="East Bay Trail badge">
+            <rect x="2" y="2" width="60" height="60" rx="14" fill="#173c34"></rect>
+            <path d="M12 45h40l-8-12-8 8-6-10-10 14-4-6z" fill="#dfeee4"></path>
+            <path d="M44 12c-7 2-12 8-12 15v3c0 2.8 2.2 5 5 5 10.5 0 19-8.5 19-19v-4c-4-1-8-1-12 0z" fill="#74c69d"></path>
+            <circle cx="19" cy="19" r="4" fill="#f3efe2"></circle>
+          </svg>
+          <h1>East Bay Trail &amp; Field Condition Tracker</h1>
           <p class="hero-description">
-            Capture hazards, invasive species, and infrastructure concerns in the field, then turn the results into clear reporting and action plans for park stewards.
+            Quickly log field incidents, capture coordinates, and keep trail condition records ready for offline park stewardship workflows.
           </p>
-          <div class="hero-data-grid">
-            <article class="hero-data-card">
-              <h3>Snapshot</h3>
-              <div id="heroStatCards" class="hero-stat-grid"></div>
-            </article>
-            <article class="hero-data-card">
-              <h3>Recent map points</h3>
-              <div id="heroMapCards" class="hero-map-list"></div>
-            </article>
-            <article class="hero-data-card">
-              <h3>Recent photos</h3>
-              <div id="heroPhotoCards" class="hero-photo-list"></div>
-            </article>
-          </div>
-        </div>
-        <div class="hero-meta" aria-label="Quick summary metrics">
-          <div class="mini-stat">
-            <span class="mini-label">Priority watch</span>
-            <strong id="priorityWatch">0</strong>
-          </div>
-          <div class="mini-stat">
-            <span class="mini-label">Needs review</span>
-            <strong id="needsReview">0</strong>
-          </div>
-          <div class="mini-stat">
-            <span class="mini-label">Last logged</span>
-            <strong id="lastIncidentDate">—</strong>
+          <div class="hero-actions">
+            <a href="log.html" class="primary-button">Log Incident</a>
+            <a href="log.html#gpsLocationButton" class="secondary-button">Capture GPS</a>
           </div>
         </div>
       </section>
